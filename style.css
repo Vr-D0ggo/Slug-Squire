@@ -1,0 +1,74 @@
+/* Make sure the base document takes up the full screen and has no scrollbars */
+html, body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden; /* Prevents scrollbars from appearing */
+    height: 100%;
+    width: 100%;
+    background-color: #282c34;
+    font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
+#game-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+/* Make the canvas take up the entire container */
+#game-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: none; /* Hidden by default */
+    background-color: #000;
+}
+
+/* Make the start screen also take up the entire container */
+#start-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #282c34;
+    color: #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+#start-screen h1 {
+    font-size: 4em;
+    font-weight: normal;
+    letter-spacing: 3px;
+}
+
+#start-screen p {
+    font-size: 1.2em;
+    color: #aaa;
+    margin-bottom: 40px;
+    font-family: sans-serif;
+}
+
+#start-button {
+    padding: 15px 30px;
+    font-size: 1.5em;
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    background-color: transparent;
+    border: 2px solid #aaa;
+    color: #e0e0e0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#start-button:hover {
+    background-color: #e0e0e0;
+    color: #282c34;
+}
+
+.hidden {
+    display: none !important;
+}
