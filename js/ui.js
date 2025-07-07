@@ -12,7 +12,7 @@ export class InventoryUI {
     }
 
     /**
-     * The main drawing function for the UI. It now requires canvas dimensions to position elements.
+     * The main drawing function for the UI. It decides what to show based on the current state.
      * @param {CanvasRenderingContext2D} ctx The canvas context to draw on.
      * @param {number} canvasWidth The current width of the canvas.
      * @param {number} canvasHeight The current height of the canvas.
@@ -41,7 +41,7 @@ export class InventoryUI {
     }
 
     /**
-     * Draws the content for the "Bug Parts" inventory page.
+     * Draws the content for the "Bug Parts" inventory page (Page 0).
      */
     drawBugPartsPage(ctx, canvasWidth, canvasHeight) {
         // Draw Title, centered horizontally
@@ -50,7 +50,7 @@ export class InventoryUI {
         ctx.textAlign = 'center';
         ctx.fillText('Bug Parts', canvasWidth / 2, 50);
 
-        // Draw the list of collected items
+        // Draw the list of collected items with status prefixes
         ctx.font = '22px Georgia';
         ctx.textAlign = 'left';
         if (this.player.inventory.length === 0) {
@@ -59,9 +59,24 @@ export class InventoryUI {
         } else {
             this.player.inventory.forEach((item, index) => {
                 const yPos = 100 + (index * 35);
-                const isEquipped = (this.player.equipped.legs === item || this.player.equipped.arms === item);
-                const prefix = isEquipped ? '[E] ' : '';
-                ctx.fillStyle = isEquipped ? '#2ecc71' : '#e0e0e0';
+                const isEquipped = (this.player.equipped[item.type] === item);
+                const isStaged = (this.player.stagedEquipment[item.type] === item);
+
+                let prefix = '';
+                // Determine the prefix and color based on the item's state
+                if (isEquipped && isStaged) {
+                    prefix = '[S] '; // Staged takes priority for display
+                    ctx.fillStyle = '#ffc107'; // Yellow for staged
+                } else if (isEquipped) {
+                    prefix = '[E] ';
+                    ctx.fillStyle = '#2ecc71'; // Green for equipped
+                } else if (isStaged) {
+                    prefix = '[S] ';
+                    ctx.fillStyle = '#ffc107'; // Yellow for staged
+                } else {
+                    ctx.fillStyle = '#e0e0e0'; // White for unequipped/unstaged
+                }
+
                 ctx.fillText(`${prefix}- ${item.name}`, 50, yPos);
             });
         }
@@ -69,18 +84,32 @@ export class InventoryUI {
         // --- Player Preview (Dynamically Positioned in Top Right) ---
         const previewBoxWidth = 220;
         const previewBoxHeight = 220;
-        const previewBoxX = canvasWidth - previewBoxWidth - 30; // 30px from the right edge
+        const previewBoxX = canvasWidth - previewBoxWidth - 30;
         const previewBoxY = 40;
-
         ctx.strokeStyle = '#777';
         ctx.strokeRect(previewBoxX, previewBoxY, previewBoxWidth, previewBoxHeight);
-        
-        // Center the player preview inside the box
         const previewX = previewBoxX + (previewBoxWidth - this.player.width) / 2;
         const previewY = previewBoxY + (previewBoxHeight - this.player.height) / 2;
+        this.player.draw(ctx, previewX, previewY, true);
 
-        const tempPlayerState = { x: previewX, y: previewY, width: this.player.width, height: this.player.height, isEvolved: this.player.isEvolved };
-        this.player.draw.call(tempPlayerState, ctx);
+        // --- Shed Exoskeleton Button ---
+        const shedButtonRect = { x: 50, y: canvasHeight - 80, width: 300, height: 50 };
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        // The button is only active if the player is at a nest
+        if (this.player.atNest) {
+            ctx.fillStyle = '#27ae60'; // Active Green
+            ctx.strokeStyle = 'white';
+        } else {
+            ctx.fillStyle = '#555'; // Inactive Gray
+            ctx.strokeStyle = '#888';
+        }
+        ctx.fillRect(shedButtonRect.x, shedButtonRect.y, shedButtonRect.width, shedButtonRect.height);
+        ctx.strokeRect(shedButtonRect.x, shedButtonRect.y, shedButtonRect.width, shedButtonRect.height);
+        
+        ctx.fillStyle = this.player.atNest ? 'white' : '#999';
+        ctx.font = '24px Georgia';
+        ctx.fillText('Shed Exoskeleton', shedButtonRect.x + shedButtonRect.width / 2, shedButtonRect.y + 25);
     }
     
     /**
@@ -91,27 +120,22 @@ export class InventoryUI {
         const popupX = (canvasWidth - popupWidth) / 2;
         const popupY = (canvasHeight - popupHeight) / 2;
 
-        // Popup background
         ctx.fillStyle = '#2c3e50';
         ctx.strokeStyle = '#95a5a6';
         ctx.lineWidth = 2;
         ctx.fillRect(popupX, popupY, popupWidth, popupHeight);
         ctx.strokeRect(popupX, popupY, popupWidth, popupHeight);
 
-        // Title
         ctx.fillStyle = 'white';
         ctx.font = '28px Georgia';
         ctx.textAlign = 'center';
         ctx.fillText(this.popupItem.name, popupX + popupWidth / 2, popupY + 40);
 
-        // Close button [X]
         const closePopupRect = { x: popupX + popupWidth - 25, y: popupY + 5, width: 20, height: 20 };
         ctx.font = '20px Arial';
         ctx.fillText('X', closePopupRect.x + 10, closePopupRect.y + 15);
         
-        // Conditional drawing based on player's evolved state
         if (this.player.isEvolved) {
-            // If EVOLVED, show stats and equip button
             ctx.font = '20px Georgia';
             ctx.textAlign = 'left';
             let yPos = popupY + 90;
@@ -119,11 +143,10 @@ export class InventoryUI {
                 ctx.fillText(`${stat}: ${value}`, popupX + 30, yPos);
                 yPos += 30;
             }
-
             const equipButtonRect = { x: popupX + 50, y: popupY + popupHeight - 70, width: 200, height: 40 };
-            const isEquipped = this.player.equipped[this.popupItem.type] === this.popupItem;
-            const buttonText = isEquipped ? 'Unequip' : 'Equip';
-            ctx.fillStyle = isEquipped ? '#c0392b' : '#27ae60';
+            const isStaged = this.player.stagedEquipment[this.popupItem.type] === this.popupItem;
+            const buttonText = isStaged ? 'Unstage' : 'Stage for Shedding';
+            ctx.fillStyle = isStaged ? '#e67e22' : '#3498db'; // Orange for unstage, Blue for stage
             ctx.fillRect(equipButtonRect.x, equipButtonRect.y, equipButtonRect.width, equipButtonRect.height);
             
             ctx.fillStyle = 'white';
@@ -132,8 +155,7 @@ export class InventoryUI {
             ctx.textBaseline = 'middle';
             ctx.fillText(buttonText, equipButtonRect.x + equipButtonRect.width / 2, equipButtonRect.y + 20);
         } else {
-            // If NOT EVOLVED, show warning message
-            ctx.fillStyle = '#ffc107'; // A gold/warning color
+            ctx.fillStyle = '#ffc107';
             ctx.font = '20px Georgia';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
@@ -143,9 +165,6 @@ export class InventoryUI {
         ctx.textBaseline = 'alphabetic'; // Reset baseline
     }
 
-    /**
-     * Draws the placeholder "Coming Soon" page, centered.
-     */
     drawComingSoonPage(ctx, canvasWidth, canvasHeight) {
         ctx.fillStyle = '#e0e0e0';
         ctx.font = '40px Georgia';
@@ -153,57 +172,43 @@ export class InventoryUI {
         ctx.fillText('Coming Soon', canvasWidth / 2, canvasHeight / 2);
     }
 
-    /**
-     * Draws the navigation arrows, vertically centered at the screen edges.
-     */
     drawNavArrows(ctx, canvasWidth, canvasHeight) {
         const rightArrowRect = { x: canvasWidth - 60, y: canvasHeight/2 - 15, width: 40, height: 30 };
         const leftArrowRect = { x: 20, y: canvasHeight/2 - 15, width: 40, height: 30 };
-        
         ctx.fillStyle = '#fff';
         ctx.font = '30px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-
         if (this.currentPage < this.maxPages - 1) {
             ctx.fillText('▶', rightArrowRect.x + 20, rightArrowRect.y + 15);
         }
         if (this.currentPage > 0) {
             ctx.fillText('◀', leftArrowRect.x + 20, leftArrowRect.y + 15);
         }
-        ctx.textBaseline = 'alphabetic'; // Reset
+        ctx.textBaseline = 'alphabetic';
     }
 
     /**
      * Handles all click events, now requiring canvas dimensions to recalculate button positions.
+     * @returns {boolean} - True if the shed button was clicked, otherwise false.
      */
     handleClick(x, y, canvasWidth, canvasHeight) {
-        // If a popup is active, we only check for clicks inside the popup
         if (this.popupItem) {
-            // We must recalculate the button positions here because they depend on the canvas size
             const popupWidth = 300, popupHeight = 300;
             const popupX = (canvasWidth - popupWidth) / 2;
             const popupY = (canvasHeight - popupHeight) / 2;
             const closePopupRect = { x: popupX + popupWidth - 25, y: popupY + 5, width: 20, height: 20 };
             const equipButtonRect = { x: popupX + 50, y: popupY + popupHeight - 70, width: 200, height: 40 };
 
-            if (this.isClickInside(x, y, closePopupRect)) {
-                this.popupItem = null;
-                return;
-            }
+            if (this.isClickInside(x, y, closePopupRect)) { this.popupItem = null; }
             
-            // Only check for equip button click if the player is evolved
             if (this.player.isEvolved && this.isClickInside(x, y, equipButtonRect)) {
-                const isEquipped = this.player.equipped[this.popupItem.type] === this.popupItem;
-                if (isEquipped) { this.player.unequipItem(this.popupItem.type); }
-                else { this.player.equipItem(this.popupItem); }
-                this.popupItem = null; // Close popup after action
-                return;
+                const isStaged = this.player.stagedEquipment[this.popupItem.type] === this.popupItem;
+                if (isStaged) { this.player.unstageItem(this.popupItem.type); }
+                else { this.player.stageItem(this.popupItem); }
+                this.popupItem = null;
             }
         } else {
-            // Otherwise, check for clicks on the main inventory page elements
-
-            // Recreate the list of item rectangles to check for clicks
             const itemRects = [];
             this.player.inventory.forEach((item, index) => {
                 const yPos = 100 + (index * 35);
@@ -213,47 +218,66 @@ export class InventoryUI {
             for (const itemRect of itemRects) {
                 if (this.isClickInside(x, y, itemRect.rect)) {
                     this.popupItem = itemRect.item;
-                    return; // Stop after finding the first clicked item
+                    return false;
                 }
             }
-
-            // Recalculate arrow positions to check for clicks
+            
+            const shedButtonRect = { x: 50, y: canvasHeight - 80, width: 300, height: 50 };
+            if (this.player.atNest && this.isClickInside(x, y, shedButtonRect)) {
+                this.player.shedExoskeleton();
+                return true; // Signal to main.js to close the inventory
+            }
+            
             const rightArrowRect = { x: canvasWidth - 60, y: canvasHeight/2 - 15, width: 40, height: 30 };
             const leftArrowRect = { x: 20, y: canvasHeight/2 - 15, width: 40, height: 30 };
-
             if (this.currentPage < this.maxPages - 1 && this.isClickInside(x, y, rightArrowRect)) this.currentPage++;
             if (this.currentPage > 0 && this.isClickInside(x, y, leftArrowRect)) this.currentPage--;
         }
+        return false;
     }
 
     /**
      * Helper function to check if a click (x,y) is within a given rectangle.
      */
     isClickInside(x, y, rect) {
-        return x > rect.x && x < rect.x + rect.width &&
-               y > rect.y && y < rect.y + rect.height;
+        return x > rect.x && x < rect.x + rect.width && y > rect.y && y < rect.y + rect.height;
     }
 }
 
-
 /**
  * A separate function for drawing the in-game interaction prompt.
- * It's called from the main game loop, within the camera's translated context.
  */
 export function drawInteractionPrompt(ctx, player, room) {
-    const interactionRange = 75; // How close the player needs to be
+    const interactionRange = 75;
+    let promptDrawn = false; // Prevents multiple prompts from drawing over each other
 
+    // Nests get priority for interaction prompts
+    room.nests.forEach(nest => {
+        if (promptDrawn) return;
+        const dx = (player.x + player.width / 2) - (nest.x + nest.width / 2);
+        const dy = (player.y + player.height / 2) - (nest.y + nest.height / 2);
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        if (distance < nest.width) {
+            ctx.fillStyle = 'white';
+            ctx.font = '16px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText("Press F to Rest", player.x + player.width / 2, player.y - 20);
+            promptDrawn = true;
+        }
+    });
+
+    // If a nest prompt wasn't drawn, check for items
     room.interactables.forEach(item => {
+        if (promptDrawn) return;
         const dx = (player.x + player.width / 2) - (item.x + item.width / 2);
         const dy = (player.y + player.height / 2) - (item.y + item.height / 2);
         const distance = Math.sqrt(dx * dx + dy * dy);
-
-        // If player is close enough, show the prompt above their head
         if (distance < interactionRange) {
             ctx.fillStyle = 'white';
             ctx.font = '16px sans-serif';
             ctx.textAlign = 'center';
             ctx.fillText("Press F to Interact", player.x + player.width / 2, player.y - 20);
+            promptDrawn = true;
         }
     });
 }

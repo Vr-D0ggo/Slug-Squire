@@ -21,23 +21,33 @@ export const levelData = {
             { x: 0, y: 0, width: 10, height: CANVAS_HEIGHT, color: '#7f8c8d', targetRoom: null },
         ],
         powerups: [
-            { x: 1000, y: 570, width: 50, height: 10, color: '#2ecc71', type: 'evolution_power' } // Renamed type
+            { x: 1000, y: 570, width: 50, height: 10, color: '#2ecc71', type: 'evolution_power' }
         ],
-        // UPDATED: Two separate interactable items with stats
         interactables: [
             {
                 id: 'ant_arms',
-                name: 'Ant Arms',
-                type: 'arms', // To know which slot it fits in
+                name: 'Broken Arms',
+                type: 'arms',
                 x: 600, y: 570, width: 30, height: 10, color: '#111',
                 stats: { Attack: 0, Defense: 0, Weight: 5 }
             },
             {
                 id: 'ant_legs',
-                name: 'Ant Legs',
-                type: 'legs', // To know which slot it fits in
+                name: 'Broken Legs',
+                type: 'legs',
                 x: 850, y: 570, width: 30, height: 10, color: '#111',
                 stats: { Jump: 1, Speed: 1, Weight: 7 }
+            }
+        ],
+        // NEW: Array for nests
+        nests: [
+            {
+                id: 'nest_1',
+                x: 150, y: 550, // Near the start
+                width: 120, // Approx 3x player base width
+                height: 30, // Approx 1x player base height
+                hasEggs: false,
+                color: '#8d6e63' // A muddy brown
             }
         ]
     },
