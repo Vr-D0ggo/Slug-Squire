@@ -96,9 +96,27 @@ export class InventoryUI {
         this.player.draw(ctx, previewX, previewY, true);
 
         const slotSize = 60;
+        // Place equipment slots inside the preview box around the caricature
+        this.slotRects = {
+            arms: {
+                type: 'arms',
+                x: previewBoxX + 10,
+                y: previewBoxY + 10,
+                width: slotSize,
+                height: slotSize
+            },
+            legs: {
+                type: 'legs',
+                x: previewBoxX + previewBoxWidth - slotSize - 10,
+                y: previewBoxY + previewBoxHeight - slotSize - 10,
+                width: slotSize,
+                height: slotSize
+            }
+
         this.slotRects = {
             arms: { type: 'arms', x: previewBoxX - slotSize - 10, y: previewBoxY + previewBoxHeight/2 - slotSize - 10, width: slotSize, height: slotSize },
             legs: { type: 'legs', x: previewBoxX + previewBoxWidth + 10, y: previewBoxY + previewBoxHeight/2, width: slotSize, height: slotSize }
+      main
         };
 
         Object.values(this.slotRects).forEach(slot => {
