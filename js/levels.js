@@ -15,6 +15,10 @@ export const levelData = {
         platforms: [
             { x: 0, y: 580, width: ROOM1_WIDTH, height: 20, color: '#7f8c8d' },
             { x: 0, y: 0, width: ROOM1_WIDTH, height: 20, color: '#7f8c8d' },
+            // Small stone to test jumping
+            { x: 1080, y: 555, width: 40, height: 25, color: '#95a5a6' },
+            // Taller stone one player width away
+            { x: 1160, y: 530, width: 40, height: 50, color: '#95a5a6' },
         ],
         walls: [
             { x: ROOM1_WIDTH - 10, y: 0, width: 10, height: CANVAS_HEIGHT, color: '#27ae60', targetRoom: 1 },
