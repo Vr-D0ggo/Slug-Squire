@@ -75,8 +75,12 @@ export default class Player {
             console.log("Can only shed exoskeleton at a nest.");
             return;
         }
+        const oldLegHeight = this.getLegHeight();
         // Use Object.assign to copy properties from staged to equipped
         Object.assign(this.equipped, this.stagedEquipment);
+        const newLegHeight = this.getLegHeight();
+        this.y -= (newLegHeight - oldLegHeight);
+        this.vy = 0;
         console.log("Exoskeleton shed. Equipment updated.");
     }
     
