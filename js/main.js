@@ -9,6 +9,16 @@ import { InventoryUI, drawInteractionPrompt } from './ui.js';
 // --- SETUP ---
 const startScreen = document.getElementById('start-screen');
 const startButton = document.getElementById('start-button');
+const rebindButton = document.getElementById('rebind-button');
+const rebindScreen = document.getElementById('rebind-screen');
+const leftKeyBtn = document.getElementById('left-key-btn');
+const rightKeyBtn = document.getElementById('right-key-btn');
+const jumpKeyBtn = document.getElementById('jump-key-btn');
+const inventoryKeyBtn = document.getElementById('inventory-key-btn');
+const interactKeyBtn = document.getElementById('interact-key-btn');
+const saveBindsBtn = document.getElementById('save-binds');
+const resetBindsBtn = document.getElementById('reset-binds');
+const backButton = document.getElementById('back-button');
 const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
 
@@ -125,7 +135,7 @@ function handleInteraction() {
 
 window.addEventListener('keyup', (e) => {
     const key = e.key.toLowerCase();
-    if (key === 'e' && gameState !== 'START') {
+    if (key === input.bindings.inventory && gameState !== 'START') {
         if (gameState === 'PLAYING') {
             // When opening inventory away from a nest, clear staging
             if (!player.atNest) {
@@ -136,23 +146,36 @@ window.addEventListener('keyup', (e) => {
             gameState = 'PLAYING';
         }
     }
-    if (key === 'f' && gameState === 'PLAYING') {
+    if (key === input.bindings.interact && gameState === 'PLAYING') {
         handleInteraction();
     }
 });
 
-canvas.addEventListener('click', (e) => {
+let mouseDown = false;
+canvas.addEventListener('mousedown', (e) => {
     if (gameState !== 'INVENTORY') return;
     const rect = canvas.getBoundingClientRect();
-    const shedClicked = ui.handleClick(e.clientX - rect.left, e.clientY - rect.top, canvas.width, canvas.height);
-    
+    ui.handleMouseDown(e.clientX - rect.left, e.clientY - rect.top);
+    mouseDown = true;
+});
+canvas.addEventListener('mousemove', (e) => {
+    if (gameState !== 'INVENTORY' || !mouseDown) return;
+    const rect = canvas.getBoundingClientRect();
+    ui.handleMouseMove(e.clientX - rect.left, e.clientY - rect.top);
+});
+canvas.addEventListener('mouseup', (e) => {
+    if (gameState !== 'INVENTORY') return;
+    const rect = canvas.getBoundingClientRect();
+    const shedClicked = ui.handleMouseUp(e.clientX - rect.left, e.clientY - rect.top, canvas.width, canvas.height);
+    mouseDown = false;
     if (shedClicked) {
-        gameState = 'PLAYING'; // Close inventory after shedding
+        gameState = 'PLAYING';
     }
 });
 
 function startGame() {
     startScreen.classList.add('hidden');
+    rebindScreen.classList.add('hidden');
     canvas.style.display = 'block';
     resizeCanvas();
     gameState = 'PLAYING';
@@ -162,3 +185,48 @@ function startGame() {
 
 window.addEventListener('resize', resizeCanvas);
 startButton.addEventListener('click', startGame);
+
+function updateBindDisplay() {
+    leftKeyBtn.textContent = input.bindings.left.toUpperCase();
+    rightKeyBtn.textContent = input.bindings.right.toUpperCase();
+    jumpKeyBtn.textContent = input.bindings.jump.toUpperCase();
+    inventoryKeyBtn.textContent = input.bindings.inventory.toUpperCase();
+    interactKeyBtn.textContent = input.bindings.interact.toUpperCase();
+}
+
+rebindButton.addEventListener('click', () => {
+    startScreen.classList.add('hidden');
+    rebindScreen.classList.remove('hidden');
+    updateBindDisplay();
+});
+
+backButton.addEventListener('click', () => {
+    rebindScreen.classList.add('hidden');
+    startScreen.classList.remove('hidden');
+});
+
+leftKeyBtn.addEventListener('click', () => {
+    input.startRebind('left');
+});
+rightKeyBtn.addEventListener('click', () => {
+    input.startRebind('right');
+});
+jumpKeyBtn.addEventListener('click', () => {
+    input.startRebind('jump');
+});
+inventoryKeyBtn.addEventListener('click', () => {
+    input.startRebind('inventory');
+});
+interactKeyBtn.addEventListener('click', () => {
+    input.startRebind('interact');
+});
+
+input.onRebindComplete = updateBindDisplay;
+
+saveBindsBtn.addEventListener('click', () => {
+    input.saveBindings();
+});
+
+resetBindsBtn.addEventListener('click', () => {
+    input.resetBindings();
+});

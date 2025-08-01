@@ -42,23 +42,39 @@ export default class Room {
         this.nests.forEach(nest => {
             context.fillStyle = nest.color;
             context.beginPath();
-            context.ellipse(nest.x + nest.width / 2, nest.y + nest.height, nest.width / 2, nest.height, 0, Math.PI, 2 * Math.PI, false);
+            context.ellipse(
+                nest.x + nest.width / 2,
+                nest.y + nest.height,
+                nest.width / 2,
+                nest.height,
+                0,
+                Math.PI,
+                2 * Math.PI,
+                false
+            );
             context.fill();
 
             if (nest.hasEggs) {
+                if (!nest.eggs) {
+                    // Create a few eggs with varying sizes and phase offsets
+                    nest.eggs = [
+                        { dx: -20, dy: 0, r: 4, phase: 0 },
+                        { dx: -5, dy: -3, r: 5, phase: 1 },
+                        { dx: 12, dy: 0, r: 3, phase: 2 },
+                        { dx: 5, dy: -6, r: 4, phase: 3 },
+                        { dx: 20, dy: -2, r: 5, phase: 4 }
+                    ];
+                }
+                const t = Date.now() / 500;
                 context.fillStyle = 'white';
-                const eggRadius = 5;
                 const centerX = nest.x + nest.width / 2;
-                const centerY = nest.y + nest.height - eggRadius - 2;
-                context.beginPath();
-                context.arc(centerX - 15, centerY, eggRadius, 0, 2 * Math.PI);
-                context.fill();
-                context.beginPath();
-                context.arc(centerX, centerY - 5, eggRadius + 1, 0, 2 * Math.PI);
-                context.fill();
-                context.beginPath();
-                context.arc(centerX + 15, centerY, eggRadius, 0, 2 * Math.PI);
-                context.fill();
+                const centerY = nest.y + nest.height - 8;
+                nest.eggs.forEach(egg => {
+                    const radius = egg.r + Math.sin(t + egg.phase) * 1;
+                    context.beginPath();
+                    context.arc(centerX + egg.dx, centerY + egg.dy, radius, 0, 2 * Math.PI);
+                    context.fill();
+                });
             }
         });
     }
