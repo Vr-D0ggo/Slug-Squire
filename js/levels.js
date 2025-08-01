@@ -43,7 +43,7 @@ export const levelData = {
         nests: [
             {
                 id: 'nest_1',
-                x: 150, y: 550, // Near the start
+                x: 1200, y: 550, // Further down the pipe
                 width: 120, // Approx 3x player base width
                 height: 30, // Approx 1x player base height
                 hasEggs: false,
