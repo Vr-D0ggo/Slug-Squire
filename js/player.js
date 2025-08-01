@@ -149,9 +149,9 @@ export default class Player {
 
     update(input, roomBoundaries) {
         const currentSpeed = this.getCurrentSpeed();
-        if (input.keys['d'] || input.keys['ArrowRight']) {
+        if (input.isActionPressed('right')) {
             this.vx = currentSpeed;
-        } else if (input.keys['a'] || input.keys['ArrowLeft']) {
+        } else if (input.isActionPressed('left')) {
             this.vx = -currentSpeed;
         } else {
             this.vx *= this.friction;
@@ -162,7 +162,7 @@ export default class Player {
             this.walkCycle += 0.25;
         }
 
-        const jumpKeysArePressed = input.keys['w'] || input.keys[' '] || input.keys['ArrowUp'];
+        const jumpKeysArePressed = input.isActionPressed('jump');
         const jumpPower = this.getCurrentJumpPower();
 
         if (jumpKeysArePressed && !this.wasJumpPressed && this.onGround && jumpPower !== 0) {
