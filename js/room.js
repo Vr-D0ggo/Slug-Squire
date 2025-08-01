@@ -113,7 +113,9 @@ export default class Room {
                 }
             }
 
+
             if (enemy.mouthOpen && enemy.mouth && !enemy.hasDealtDamage) {
+
                 const m = enemy.mouth;
                 if (
                     player.x < m.x + m.width &&

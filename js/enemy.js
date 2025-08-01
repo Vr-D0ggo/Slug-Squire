@@ -9,6 +9,7 @@ export class Enemy {
         this.vy = 0;
         this.onGround = false;
         this.hasDealtDamage = false;
+
     }
 
     update(room) {
@@ -41,6 +42,7 @@ export class LittleBrownSkink extends Enemy {
         // Enemy size relative to the unevolved player
         const width = 40 * 3;        // 3x the player width
         const height = 20 * 0.5;     // Half the player height
+
         super(x, y - height, width, height, '#ff69b4');
         this.damage = 40;
 
@@ -108,7 +110,7 @@ export class LittleBrownSkink extends Enemy {
                 }
             }
         });
-
+      
         if (this.mouthTimer > 0) {
             this.mouthTimer--;
             if (this.mouthTimer === 0) {
@@ -117,7 +119,6 @@ export class LittleBrownSkink extends Enemy {
         } else {
             this.attack(player);
         }
-
         const headX = this.direction === 1 ? this.x + this.width : this.x - this.headWidth;
         this.mouth.x = this.direction === 1 ? headX + this.headWidth : headX - this.mouth.width;
         this.mouth.y = this.y + this.height / 2 - this.mouth.height / 2;
