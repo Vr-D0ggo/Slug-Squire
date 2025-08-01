@@ -106,6 +106,10 @@ export default class Room {
                     player.y = enemy.y - player.height;
                     player.vy = 0;
                     player.onGround = true;
+                    if (enemy.stun) enemy.stun(30);
+                } else if (player.vy < 0 && player.y - player.vy >= enemy.y + enemy.height) {
+                    player.vy = 0;
+                    player.y = enemy.y + enemy.height;
                 } else if (player.x < enemy.x) {
                     player.x = enemy.x - player.width;
                 } else {

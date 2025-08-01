@@ -52,13 +52,19 @@ export class LittleBrownSkink extends Enemy {
 
         this.mouthOpen = false;
         this.mouthTimer = 0;
+        this.stunTimer = 0;
 
-        this.headWidth = height;      // large green head
-        this.headHeight = height * 0.9;
+        // Larger head for more cartoonish look
+        this.headWidth = height * 1.5;
+        this.headHeight = height * 1.3;
 
         const mouthWidth = this.headWidth * 0.4;
         const mouthHeight = this.headHeight * 0.6;
         this.mouth = { x: 0, y: 0, width: mouthWidth, height: mouthHeight };
+    }
+
+    stun(duration) {
+        this.stunTimer = duration;
     }
 
     attack(player) {
@@ -72,14 +78,18 @@ export class LittleBrownSkink extends Enemy {
     }
 
     update(room, player) {
-        // Basic chasing behaviour
-        if (player.x + player.width / 2 < this.x + this.width / 2) {
-            this.direction = -1;
+        if (this.stunTimer > 0) {
+            this.stunTimer--;
+            this.vx = 0;
         } else {
-            this.direction = 1;
+            // Basic chasing behaviour
+            if (player.x + player.width / 2 < this.x + this.width / 2) {
+                this.direction = -1;
+            } else {
+                this.direction = 1;
+            }
+            this.vx = this.speed * this.direction;
         }
-
-        this.vx = this.speed * this.direction;
 
         super.update(room);
 
