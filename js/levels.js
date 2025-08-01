@@ -47,15 +47,15 @@ export const levelData = {
         nests: [
             {
                 id: 'nest_1',
-                x: 1200, y: 550, // Further down the pipe
-                width: 120, // Approx 3x player base width
-                height: 30, // Approx 1x player base height
+                x: 900, y: 550, // Before the rocks
+                width: 120,
+                height: 30,
                 hasEggs: false,
-                color: '#8d6e63' // A muddy brown
+                color: '#8d6e63'
             }
         ],
         enemies: [
-            { type: "little_brown_skink", x: 400, y: 560 }
+            { type: "little_brown_skink", x: 1300, y: 560 }
         ],
     },
 };

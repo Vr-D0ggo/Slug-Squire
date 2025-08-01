@@ -108,18 +108,20 @@ export default class Player {
 
         if (this.equipped.legs) {
             context.fillStyle = '#111';
+            context.strokeStyle = '#555';
             const legWidth = 4;
             const angle = Math.sin(currentWalkCycle) * 0.4;
-            context.save();
-            context.translate(drawX + this.width * 0.75, drawY + this.height);
-            context.rotate(angle);
-            context.fillRect(-legWidth / 2, 0, legWidth, legHeight);
-            context.restore();
-            context.save();
-            context.translate(drawX + this.width * 0.25, drawY + this.height);
-            context.rotate(-angle);
-            context.fillRect(-legWidth / 2, 0, legWidth, legHeight);
-            context.restore();
+            [0.75, 0.25].forEach((offset, i) => {
+                context.save();
+                context.translate(drawX + this.width * offset, drawY + this.height);
+                context.rotate(i === 0 ? angle : -angle);
+                context.fillRect(-legWidth / 2, 0, legWidth, legHeight);
+                context.beginPath();
+                context.moveTo(-legWidth / 2, legHeight * 0.5);
+                context.lineTo(legWidth / 2, legHeight);
+                context.stroke();
+                context.restore();
+            });
         }
 
         context.fillStyle = '#d35400';
@@ -131,19 +133,25 @@ export default class Player {
 
         if (this.equipped.arms) {
             context.fillStyle = '#111';
+            context.strokeStyle = '#555';
             const armWidth = 4;
             const armLength = 20;
             const angle = Math.sin(currentWalkCycle + Math.PI / 2) * 0.3;
-            context.save();
-            context.translate(drawX + this.width, drawY + this.height * 0.6);
-            context.rotate(angle);
-            context.fillRect(0, -armWidth / 2, armLength, armWidth);
-            context.restore();
-            context.save();
-            context.translate(drawX, drawY + this.height * 0.6);
-            context.rotate(-angle);
-            context.fillRect(-armLength, -armWidth / 2, armLength, armWidth);
-            context.restore();
+            [1, -1].forEach((dir) => {
+                context.save();
+                if (dir === 1) {
+                    context.translate(drawX + this.width, drawY + this.height * 0.6);
+                } else {
+                    context.translate(drawX, drawY + this.height * 0.6);
+                }
+                context.rotate(dir === 1 ? angle : -angle);
+                context.fillRect(dir === 1 ? 0 : -armLength, -armWidth / 2, armLength, armWidth);
+                context.beginPath();
+                context.moveTo(dir === 1 ? 0 : -armLength, 0);
+                context.lineTo(dir === 1 ? armLength : 0, armWidth / 2);
+                context.stroke();
+                context.restore();
+            });
         }
     }
 
