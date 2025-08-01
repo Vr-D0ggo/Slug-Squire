@@ -53,6 +53,9 @@ export const levelData = {
                 hasEggs: false,
                 color: '#8d6e63' // A muddy brown
             }
-        ]
+        ],
+        enemies: [
+            { type: "little_brown_skink", x: 400, y: 560 }
+        ],
     },
 };

@@ -1,4 +1,5 @@
 // js/room.js
+import { LittleBrownSkink } from './enemy.js';
 
 export default class Room {
     constructor(roomData) {
@@ -13,6 +14,14 @@ export default class Room {
         this.powerups = roomData.powerups || [];
         this.interactables = roomData.interactables || [];
         this.nests = roomData.nests || [];
+        this.enemies = (roomData.enemies || []).map(e => {
+            switch (e.type) {
+                case 'little_brown_skink':
+                    return new LittleBrownSkink(e.x, e.y);
+                default:
+                    return null;
+            }
+        }).filter(Boolean);
     }
 
     draw(context) {
@@ -75,6 +84,45 @@ export default class Room {
                     context.arc(centerX + egg.dx, centerY + egg.dy, radius, 0, 2 * Math.PI);
                     context.fill();
                 });
+            }
+        });
+
+        this.enemies.forEach(enemy => {
+            enemy.draw(context);
+        });
+    }
+
+    updateEnemies(player) {
+        this.enemies.forEach(enemy => {
+            enemy.update(this, player);
+
+            if (
+                player.x < enemy.x + enemy.width &&
+                player.x + player.width > enemy.x &&
+                player.y < enemy.y + enemy.height &&
+                player.y + player.height > enemy.y
+            ) {
+                if (player.vy >= 0 && player.y + player.height - player.vy <= enemy.y) {
+                    player.y = enemy.y - player.height;
+                    player.vy = 0;
+                    player.onGround = true;
+                } else if (player.x < enemy.x) {
+                    player.x = enemy.x - player.width;
+                } else {
+                    player.x = enemy.x + enemy.width;
+                }
+            }
+
+            if (enemy.mouthOpen && enemy.mouth) {
+                const m = enemy.mouth;
+                if (
+                    player.x < m.x + m.width &&
+                    player.x + player.width > m.x &&
+                    player.y < m.y + m.height &&
+                    player.y + player.height > m.y
+                ) {
+                    player.health -= enemy.damage;
+                }
             }
         });
     }

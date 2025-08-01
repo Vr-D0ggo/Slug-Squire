@@ -80,7 +80,8 @@ function gameLoop() {
 
         // --- Game Logic Updates ---
         player.update(input, { width: currentRoom.width, height: currentRoom.height });
-        const targetRoom = currentRoom.checkCollisions(player); 
+        currentRoom.updateEnemies(player);
+        const targetRoom = currentRoom.checkCollisions(player);
         if (targetRoom !== null) {
             loadRoom(targetRoom);
         }
