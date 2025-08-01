@@ -56,7 +56,6 @@ export const levelData = {
         ],
         enemies: [
             { type: "little_brown_skink", x: 1300, y: 560 }
-
         ],
     },
 };

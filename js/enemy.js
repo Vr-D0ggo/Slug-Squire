@@ -8,6 +8,8 @@ export class Enemy {
         this.vx = 0;
         this.vy = 0;
         this.onGround = false;
+        this.hasDealtDamage = false;
+
     }
 
     update(room) {
@@ -37,10 +39,10 @@ export class Enemy {
 
 export class LittleBrownSkink extends Enemy {
     constructor(x, y) {
-
         // Enemy size relative to the unevolved player
         const width = 40 * 3;        // 3x the player width
-        const height = 20 * 1.5;     // 1.5x the player height
+        const height = 20 * 0.5;     // Half the player height
+
         super(x, y - height, width, height, '#ff69b4');
         this.damage = 40;
 
@@ -62,22 +64,10 @@ export class LittleBrownSkink extends Enemy {
     attack(player) {
         const range = this.width;
         const dx = (player.x + player.width / 2) - (this.x + this.width / 2);
-        const width = 40 * 3;
-        const height = 20 / 2;
-        super(x, y - height, width, height, '#ff69b4');
-        this.damage = 40;
-        this.mouthOpen = false;
-        this.mouthTimer = 0;
-        this.mouth = { x: 0, y: 0, width: width * 0.3, height: height * 0.8 };
-    }
-
-    attack(player) {
-        const range = this.width / 2;
-        const dx = (player.x + player.width/2) - (this.x + this.width/2);
-
         if (Math.abs(dx) < range && Math.abs(player.y - this.y) < this.height) {
             this.mouthOpen = true;
             this.mouthTimer = 20;
+            this.hasDealtDamage = false;
         }
     }
 
@@ -120,9 +110,7 @@ export class LittleBrownSkink extends Enemy {
                 }
             }
         });
-
-        super.update(room);
-
+      
         if (this.mouthTimer > 0) {
             this.mouthTimer--;
             if (this.mouthTimer === 0) {
@@ -131,8 +119,6 @@ export class LittleBrownSkink extends Enemy {
         } else {
             this.attack(player);
         }
-
-
         const headX = this.direction === 1 ? this.x + this.width : this.x - this.headWidth;
         this.mouth.x = this.direction === 1 ? headX + this.headWidth : headX - this.mouth.width;
         this.mouth.y = this.y + this.height / 2 - this.mouth.height / 2;
@@ -183,15 +169,6 @@ export class LittleBrownSkink extends Enemy {
 
         if (this.mouthOpen) {
             ctx.fillStyle = '#ff9acb';
-
-        this.mouth.x = this.x + this.width;
-        this.mouth.y = this.y + this.height/2 - this.mouth.height/2;
-    }
-
-    draw(ctx) {
-        super.draw(ctx);
-        ctx.fillStyle = '#ff9acb';
-        if (this.mouthOpen) {
             ctx.fillRect(this.mouth.x, this.mouth.y, this.mouth.width, this.mouth.height);
         }
     }

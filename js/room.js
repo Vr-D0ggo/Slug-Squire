@@ -113,7 +113,9 @@ export default class Room {
                 }
             }
 
-            if (enemy.mouthOpen && enemy.mouth) {
+
+            if (enemy.mouthOpen && enemy.mouth && !enemy.hasDealtDamage) {
+
                 const m = enemy.mouth;
                 if (
                     player.x < m.x + m.width &&
@@ -122,6 +124,7 @@ export default class Room {
                     player.y + player.height > m.y
                 ) {
                     player.health -= enemy.damage;
+                    enemy.hasDealtDamage = true;
                 }
             }
         });
