@@ -151,13 +151,25 @@ window.addEventListener('keyup', (e) => {
     }
 });
 
-canvas.addEventListener('click', (e) => {
+let mouseDown = false;
+canvas.addEventListener('mousedown', (e) => {
     if (gameState !== 'INVENTORY') return;
     const rect = canvas.getBoundingClientRect();
-    const shedClicked = ui.handleClick(e.clientX - rect.left, e.clientY - rect.top, canvas.width, canvas.height);
-    
+    ui.handleMouseDown(e.clientX - rect.left, e.clientY - rect.top);
+    mouseDown = true;
+});
+canvas.addEventListener('mousemove', (e) => {
+    if (gameState !== 'INVENTORY' || !mouseDown) return;
+    const rect = canvas.getBoundingClientRect();
+    ui.handleMouseMove(e.clientX - rect.left, e.clientY - rect.top);
+});
+canvas.addEventListener('mouseup', (e) => {
+    if (gameState !== 'INVENTORY') return;
+    const rect = canvas.getBoundingClientRect();
+    const shedClicked = ui.handleMouseUp(e.clientX - rect.left, e.clientY - rect.top, canvas.width, canvas.height);
+    mouseDown = false;
     if (shedClicked) {
-        gameState = 'PLAYING'; // Close inventory after shedding
+        gameState = 'PLAYING';
     }
 });
 
