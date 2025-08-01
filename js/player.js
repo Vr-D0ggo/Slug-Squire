@@ -75,8 +75,12 @@ export default class Player {
             console.log("Can only shed exoskeleton at a nest.");
             return;
         }
+        const oldLegHeight = this.getLegHeight();
         // Use Object.assign to copy properties from staged to equipped
         Object.assign(this.equipped, this.stagedEquipment);
+        const newLegHeight = this.getLegHeight();
+        this.y -= (newLegHeight - oldLegHeight);
+        this.vy = 0;
         console.log("Exoskeleton shed. Equipment updated.");
     }
     
@@ -145,9 +149,9 @@ export default class Player {
 
     update(input, roomBoundaries) {
         const currentSpeed = this.getCurrentSpeed();
-        if (input.keys['d'] || input.keys['ArrowRight']) {
+        if (input.isActionPressed('right')) {
             this.vx = currentSpeed;
-        } else if (input.keys['a'] || input.keys['ArrowLeft']) {
+        } else if (input.isActionPressed('left')) {
             this.vx = -currentSpeed;
         } else {
             this.vx *= this.friction;
@@ -158,7 +162,7 @@ export default class Player {
             this.walkCycle += 0.25;
         }
 
-        const jumpKeysArePressed = input.keys['w'] || input.keys[' '] || input.keys['ArrowUp'];
+        const jumpKeysArePressed = input.isActionPressed('jump');
         const jumpPower = this.getCurrentJumpPower();
 
         if (jumpKeysArePressed && !this.wasJumpPressed && this.onGround && jumpPower !== 0) {
