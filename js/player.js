@@ -162,7 +162,7 @@ export default class Player {
             this.walkCycle += 0.25;
         }
 
-        const jumpKeysArePressed = input.keys['w'] || input.keys[' '] || input.keys['ArrowUp'];
+        const jumpKeysArePressed = input.isActionPressed('jump');
         const jumpPower = this.getCurrentJumpPower();
 
         if (jumpKeysArePressed && !this.wasJumpPressed && this.onGround && jumpPower !== 0) {

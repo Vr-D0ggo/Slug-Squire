@@ -9,6 +9,12 @@ import { InventoryUI, drawInteractionPrompt } from './ui.js';
 // --- SETUP ---
 const startScreen = document.getElementById('start-screen');
 const startButton = document.getElementById('start-button');
+const rebindButton = document.getElementById('rebind-button');
+const rebindScreen = document.getElementById('rebind-screen');
+const jumpKeyBtn = document.getElementById('jump-key-btn');
+const saveBindsBtn = document.getElementById('save-binds');
+const resetBindsBtn = document.getElementById('reset-binds');
+const backButton = document.getElementById('back-button');
 const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
 
@@ -153,6 +159,7 @@ canvas.addEventListener('click', (e) => {
 
 function startGame() {
     startScreen.classList.add('hidden');
+    rebindScreen.classList.add('hidden');
     canvas.style.display = 'block';
     resizeCanvas();
     gameState = 'PLAYING';
@@ -162,3 +169,32 @@ function startGame() {
 
 window.addEventListener('resize', resizeCanvas);
 startButton.addEventListener('click', startGame);
+
+function updateBindDisplay() {
+    jumpKeyBtn.textContent = input.bindings.jump.toUpperCase();
+}
+
+rebindButton.addEventListener('click', () => {
+    startScreen.classList.add('hidden');
+    rebindScreen.classList.remove('hidden');
+    updateBindDisplay();
+});
+
+backButton.addEventListener('click', () => {
+    rebindScreen.classList.add('hidden');
+    startScreen.classList.remove('hidden');
+});
+
+jumpKeyBtn.addEventListener('click', () => {
+    input.startRebind('jump');
+});
+
+input.onRebindComplete = updateBindDisplay;
+
+saveBindsBtn.addEventListener('click', () => {
+    input.saveBindings();
+});
+
+resetBindsBtn.addEventListener('click', () => {
+    input.resetBindings();
+});
