@@ -112,6 +112,11 @@ export class InventoryUI {
                 width: slotSize,
                 height: slotSize
             }
+
+        this.slotRects = {
+            arms: { type: 'arms', x: previewBoxX - slotSize - 10, y: previewBoxY + previewBoxHeight/2 - slotSize - 10, width: slotSize, height: slotSize },
+            legs: { type: 'legs', x: previewBoxX + previewBoxWidth + 10, y: previewBoxY + previewBoxHeight/2, width: slotSize, height: slotSize }
+      main
         };
 
         Object.values(this.slotRects).forEach(slot => {
