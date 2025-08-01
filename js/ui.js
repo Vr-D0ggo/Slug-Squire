@@ -9,6 +9,12 @@ export class InventoryUI {
         this.currentPage = 0;
         this.maxPages = 2; // Page 0: Bug Parts, Page 1: Coming Soon
         this.popupItem = null; // When an item is clicked, it's stored here to draw the popup
+
+        this.draggingItem = null;
+        this.dragPos = { x: 0, y: 0 };
+        this.isDragging = false;
+        this.itemRects = [];
+        this.slotRects = {};
     }
 
     /**
@@ -50,50 +56,68 @@ export class InventoryUI {
         ctx.textAlign = 'center';
         ctx.fillText('Bug Parts', canvasWidth / 2, 50);
 
-        // Draw the list of collected items with status prefixes
-        ctx.font = '22px Georgia';
-        ctx.textAlign = 'left';
+        // Draw inventory items as gray boxes
+        const boxSize = 60;
+        const startX = 50;
+        const startY = 100;
+        const maxPerColumn = Math.floor((canvasHeight - startY - 40) / (boxSize + 10));
+        this.itemRects = [];
+
+        this.player.inventory.forEach((item, index) => {
+            const col = Math.floor(index / maxPerColumn);
+            const row = index % maxPerColumn;
+            const x = startX + col * (boxSize + 10);
+            const y = startY + row * (boxSize + 10);
+            ctx.fillStyle = '#555';
+            ctx.fillRect(x, y, boxSize, boxSize);
+            ctx.strokeStyle = '#888';
+            ctx.strokeRect(x, y, boxSize, boxSize);
+            this.drawItemIcon(ctx, item, x + boxSize / 2, y + boxSize / 2, boxSize * 0.6);
+            this.itemRects.push({ item: item, rect: { x, y, width: boxSize, height: boxSize } });
+        });
+
         if (this.player.inventory.length === 0) {
             ctx.fillStyle = '#888';
-            ctx.fillText('Nothing collected yet...', 50, 100);
-        } else {
-            this.player.inventory.forEach((item, index) => {
-                const yPos = 100 + (index * 35);
-                const isEquipped = (this.player.equipped[item.type] === item);
-                const isStaged = (this.player.stagedEquipment[item.type] === item);
-
-                let prefix = '';
-                // Determine the prefix and color based on the item's state
-                if (isEquipped && isStaged) {
-                    prefix = '[S] '; // Staged takes priority for display
-                    ctx.fillStyle = '#ffc107'; // Yellow for staged
-                } else if (isEquipped) {
-                    prefix = '[E] ';
-                    ctx.fillStyle = '#2ecc71'; // Green for equipped
-                } else if (isStaged) {
-                    prefix = '[S] ';
-                    ctx.fillStyle = '#ffc107'; // Yellow for staged
-                } else {
-                    ctx.fillStyle = '#e0e0e0'; // White for unequipped/unstaged
-                }
-
-                ctx.fillText(`${prefix}- ${item.name}`, 50, yPos);
-            });
+            ctx.font = '22px Georgia';
+            ctx.textAlign = 'left';
+            ctx.fillText('Nothing collected yet...', startX, startY);
         }
         
         // --- Player Preview (Dynamically Positioned in Top Right) ---
-        const previewBoxWidth = 220;
-        const previewBoxHeight = 220;
+        const previewBoxWidth = 300;
+        const previewBoxHeight = 300;
         const previewBoxX = canvasWidth - previewBoxWidth - 30;
         const previewBoxY = 40;
-        ctx.strokeStyle = '#777';
+        this.previewRect = { x: previewBoxX, y: previewBoxY, width: previewBoxWidth, height: previewBoxHeight };
+        ctx.strokeStyle = '#fff';
         ctx.strokeRect(previewBoxX, previewBoxY, previewBoxWidth, previewBoxHeight);
         const previewX = previewBoxX + (previewBoxWidth - this.player.width) / 2;
         const previewY = previewBoxY + (previewBoxHeight - this.player.height) / 2;
         this.player.draw(ctx, previewX, previewY, true);
 
+        const slotSize = 60;
+        this.slotRects = {
+            arms: { type: 'arms', x: previewBoxX - slotSize - 10, y: previewBoxY + previewBoxHeight/2 - slotSize - 10, width: slotSize, height: slotSize },
+            legs: { type: 'legs', x: previewBoxX + previewBoxWidth + 10, y: previewBoxY + previewBoxHeight/2, width: slotSize, height: slotSize }
+        };
+
+        Object.values(this.slotRects).forEach(slot => {
+            ctx.fillStyle = '#555';
+            ctx.fillRect(slot.x, slot.y, slot.width, slot.height);
+            ctx.strokeStyle = 'white';
+            ctx.strokeRect(slot.x, slot.y, slot.width, slot.height);
+            const equipped = this.player.stagedEquipment[slot.type] || this.player.equipped[slot.type];
+            if (equipped) {
+                this.drawItemIcon(ctx, equipped, slot.x + slot.width/2, slot.y + slot.height/2, slot.width*0.6);
+            }
+        });
+
+        if (this.draggingItem) {
+            this.drawItemIcon(ctx, this.draggingItem, this.dragPos.x, this.dragPos.y, 40);
+        }
+
         // --- Shed Exoskeleton Button ---
-        const shedButtonRect = { x: 50, y: canvasHeight - 80, width: 300, height: 50 };
+        this.shedButtonRect = { x: previewBoxX, y: previewBoxY + previewBoxHeight + 20, width: previewBoxWidth, height: 50 };
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         // The button is only active if the player is at a nest
@@ -104,12 +128,12 @@ export class InventoryUI {
             ctx.fillStyle = '#555'; // Inactive Gray
             ctx.strokeStyle = '#888';
         }
-        ctx.fillRect(shedButtonRect.x, shedButtonRect.y, shedButtonRect.width, shedButtonRect.height);
-        ctx.strokeRect(shedButtonRect.x, shedButtonRect.y, shedButtonRect.width, shedButtonRect.height);
+        ctx.fillRect(this.shedButtonRect.x, this.shedButtonRect.y, this.shedButtonRect.width, this.shedButtonRect.height);
+        ctx.strokeRect(this.shedButtonRect.x, this.shedButtonRect.y, this.shedButtonRect.width, this.shedButtonRect.height);
         
         ctx.fillStyle = this.player.atNest ? 'white' : '#999';
         ctx.font = '24px Georgia';
-        ctx.fillText('Shed Exoskeleton', shedButtonRect.x + shedButtonRect.width / 2, shedButtonRect.y + 25);
+        ctx.fillText('Shed Exoskeleton', this.shedButtonRect.x + this.shedButtonRect.width / 2, this.shedButtonRect.y + 25);
     }
     
     /**
@@ -188,6 +212,15 @@ export class InventoryUI {
         ctx.textBaseline = 'alphabetic';
     }
 
+    drawItemIcon(ctx, item, centerX, centerY, size) {
+        ctx.fillStyle = '#ccc';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = `${size}px Arial`;
+        const text = item.type === 'arms' ? 'A' : 'L';
+        ctx.fillText(text, centerX, centerY);
+    }
+
     /**
      * Handles all click events, now requiring canvas dimensions to recalculate button positions.
      * @returns {boolean} - True if the shed button was clicked, otherwise false.
@@ -209,23 +242,16 @@ export class InventoryUI {
                 this.popupItem = null;
             }
         } else {
-            const itemRects = [];
-            this.player.inventory.forEach((item, index) => {
-                const yPos = 100 + (index * 35);
-                itemRects.push({ item: item, rect: { x: 45, y: yPos - 20, width: 300, height: 30 } });
-            });
-
-            for (const itemRect of itemRects) {
+            for (const itemRect of this.itemRects) {
                 if (this.isClickInside(x, y, itemRect.rect)) {
                     this.popupItem = itemRect.item;
                     return false;
                 }
             }
-            
-            const shedButtonRect = { x: 50, y: canvasHeight - 80, width: 300, height: 50 };
-            if (this.player.atNest && this.isClickInside(x, y, shedButtonRect)) {
+
+            if (this.player.atNest && this.shedButtonRect && this.isClickInside(x, y, this.shedButtonRect)) {
                 this.player.shedExoskeleton();
-                return true; // Signal to main.js to close the inventory
+                return true;
             }
             
             const rightArrowRect = { x: canvasWidth - 60, y: canvasHeight/2 - 15, width: 40, height: 30 };
@@ -241,6 +267,43 @@ export class InventoryUI {
      */
     isClickInside(x, y, rect) {
         return x > rect.x && x < rect.x + rect.width && y > rect.y && y < rect.y + rect.height;
+    }
+
+    handleMouseDown(x, y) {
+        this.isDragging = false;
+        for (const itemRect of this.itemRects) {
+            if (this.isClickInside(x, y, itemRect.rect)) {
+                this.draggingItem = itemRect.item;
+                this.dragPos = { x, y };
+                return;
+            }
+        }
+        this.draggingItem = null;
+    }
+
+    handleMouseMove(x, y) {
+        if (this.draggingItem) {
+            this.isDragging = true;
+            this.dragPos = { x, y };
+        }
+    }
+
+    handleMouseUp(x, y, canvasWidth, canvasHeight) {
+        if (this.draggingItem && this.isDragging) {
+            for (const slot of Object.values(this.slotRects)) {
+                if (slot.type === this.draggingItem.type && this.isClickInside(x, y, slot)) {
+                    this.player.stageItem(this.draggingItem);
+                    break;
+                }
+            }
+            this.draggingItem = null;
+            this.isDragging = false;
+            return false;
+        }
+        const result = this.handleClick(x, y, canvasWidth, canvasHeight);
+        this.draggingItem = null;
+        this.isDragging = false;
+        return result;
     }
 }
 
