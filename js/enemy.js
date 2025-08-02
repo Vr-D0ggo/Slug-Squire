@@ -40,7 +40,7 @@ export class Enemy {
 export class LittleBrownSkink extends Enemy {
     constructor(x, y) {
         // Enemy size relative to the unevolved player
-        const width = 40 * 3;        // 3x the player width
+        const width = 40 * 2.5;      // Slightly shorter than before
         const height = 20 * 0.5;     // Half the player height
 
         super(x, y - height, width, height, '#ff69b4');
@@ -70,7 +70,8 @@ export class LittleBrownSkink extends Enemy {
     attack(player) {
         const range = this.width;
         const dx = (player.x + player.width / 2) - (this.x + this.width / 2);
-        if (Math.abs(dx) < range && Math.abs(player.y - this.y) < this.height) {
+        const dy = player.y - this.y;
+        if (Math.abs(dx) < range && Math.abs(dy) < this.height * 2) {
             this.mouthOpen = true;
             this.mouthTimer = 20;
             this.hasDealtDamage = false;
@@ -178,8 +179,12 @@ export class LittleBrownSkink extends Enemy {
         ctx.fillRect(headX, this.y + this.height * 0.1, this.headWidth, this.headHeight);
 
         if (this.mouthOpen) {
+            const phase = this.mouthTimer / 10 - 1; // 1 to -1 over timer
+            const openRatio = 1 - Math.abs(phase); // 0 -> 1 -> 0
+            const currentHeight = this.mouth.height * openRatio;
+            const mouthY = this.mouth.y + (this.mouth.height - currentHeight) / 2;
             ctx.fillStyle = '#ff9acb';
-            ctx.fillRect(this.mouth.x, this.mouth.y, this.mouth.width, this.mouth.height);
+            ctx.fillRect(this.mouth.x, mouthY, this.mouth.width, currentHeight);
         }
     }
 }

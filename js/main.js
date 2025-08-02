@@ -96,6 +96,15 @@ function gameLoop() {
         drawInteractionPrompt(ctx, player, currentRoom);
         ctx.restore();
 
+        // --- UI Overlay ---
+        const barWidth = 100;
+        const barHeight = 10;
+        const healthRatio = player.health / player.maxHealth;
+        ctx.fillStyle = '#550000';
+        ctx.fillRect(10, 10, barWidth, barHeight);
+        ctx.fillStyle = '#ff0000';
+        ctx.fillRect(10, 10, barWidth * healthRatio, barHeight);
+
     } else if (gameState === 'INVENTORY') {
         ui.draw(ctx, canvas.width, canvas.height);
     }
