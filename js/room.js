@@ -65,13 +65,20 @@ export default class Room {
 
             if (nest.hasEggs) {
                 if (!nest.eggs) {
-                    // Create a few eggs with varying sizes and phase offsets
+                    // Create a cluster of eggs spread across the nest
                     nest.eggs = [
-                        { dx: -20, dy: 0, r: 4, phase: 0 },
-                        { dx: -5, dy: -3, r: 5, phase: 1 },
-                        { dx: 12, dy: 0, r: 3, phase: 2 },
-                        { dx: 5, dy: -6, r: 4, phase: 3 },
-                        { dx: 20, dy: -2, r: 5, phase: 4 }
+                        { dx: -50, dy: -3, r: 4, phase: 0 },
+                        { dx: -40, dy: 2, r: 3, phase: 1 },
+                        { dx: -30, dy: -2, r: 4, phase: 2 },
+                        { dx: -20, dy: 0, r: 4, phase: 3 },
+                        { dx: -10, dy: -5, r: 5, phase: 4 },
+                        { dx: -5, dy: 3, r: 3, phase: 5 },
+                        { dx: 5, dy: -6, r: 4, phase: 6 },
+                        { dx: 10, dy: 2, r: 3, phase: 7 },
+                        { dx: 20, dy: -2, r: 5, phase: 8 },
+                        { dx: 30, dy: -4, r: 4, phase: 9 },
+                        { dx: 40, dy: 1, r: 3, phase: 10 },
+                        { dx: 50, dy: -3, r: 4, phase: 11 }
                     ];
                 }
                 const t = Date.now() / 500;
@@ -106,10 +113,16 @@ export default class Room {
                     player.y = enemy.y - player.height;
                     player.vy = 0;
                     player.onGround = true;
+                    if (enemy.stun) enemy.stun(30);
+                } else if (player.vy < 0 && player.y - player.vy >= enemy.y + enemy.height) {
+                    player.vy = 0;
+                    player.y = enemy.y + enemy.height;
                 } else if (player.x < enemy.x) {
                     player.x = enemy.x - player.width;
+                    player.vx = 0;
                 } else {
                     player.x = enemy.x + enemy.width;
+                    player.vx = 0;
                 }
             }
 
@@ -136,6 +149,8 @@ export default class Room {
             const totalPlayerHeight = player.height + player.getLegHeight();
             const playerBottom = player.y + totalPlayerHeight;
             const playerPrevBottom = player.y - player.vy + totalPlayerHeight;
+            const playerPrevRight = player.x - player.vx + player.width;
+            const playerPrevLeft = player.x - player.vx;
 
             if (
                 player.x < platform.x + platform.width &&
@@ -147,10 +162,15 @@ export default class Room {
                     player.y = platform.y - totalPlayerHeight;
                     player.vy = 0;
                     player.onGround = true;
-                }
-                if (player.vy < 0 && player.y > platform.y) {
+                } else if (player.vy < 0 && player.y >= platform.y + platform.height) {
                     player.vy = 0;
                     player.y = platform.y + platform.height;
+                } else if (player.vx > 0 && playerPrevRight <= platform.x) {
+                    player.x = platform.x - player.width;
+                    player.vx = 0;
+                } else if (player.vx < 0 && playerPrevLeft >= platform.x + platform.width) {
+                    player.x = platform.x + platform.width;
+                    player.vx = 0;
                 }
             }
         });

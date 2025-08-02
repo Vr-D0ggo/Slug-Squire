@@ -29,7 +29,7 @@ export default class Player {
         this.x = 0; this.y = 0;
         this.vx = 0; this.vy = 0;
         this.onGround = false;
-        this.friction = 0.9;
+        // friction is no longer needed as the player stops immediately
         this.wasJumpPressed = false;
         this.walkCycle = 0;
     }
@@ -153,6 +153,8 @@ export default class Player {
                 context.restore();
             });
         }
+
+        // Health bar is now drawn in the main loop's UI layer
     }
 
     update(input, roomBoundaries) {
@@ -162,7 +164,8 @@ export default class Player {
         } else if (input.isActionPressed('left')) {
             this.vx = -currentSpeed;
         } else {
-            this.vx *= this.friction;
+            // Stop instantly when no movement keys are pressed
+            this.vx = 0;
         }
         this.x += this.vx;
 
