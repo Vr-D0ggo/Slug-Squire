@@ -153,8 +153,6 @@ export default class Player {
                 context.restore();
             });
         }
-
-        // Health bar is now drawn in the main loop's UI layer
     }
 
     update(input, roomBoundaries) {
