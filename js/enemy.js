@@ -133,6 +133,7 @@ export class LittleBrownSkink extends Enemy {
 
         const headX = this.direction === 1 ? this.x + this.width : this.x - this.headWidth;
         const headY = this.y + this.height * 0.1;
+        this.head = { x: headX, y: headY, width: this.headWidth, height: this.headHeight };
         const headFront = this.direction === 1 ? headX + this.headWidth : headX;
         this.mouth.x = headFront - this.mouth.width / 2;
         this.mouth.y = headY + this.headHeight / 2 - this.mouth.height / 2;
