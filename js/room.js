@@ -103,6 +103,7 @@ export default class Room {
         this.enemies.forEach(enemy => {
             enemy.update(this, player);
 
+
             // Head collision: purely damaging, no physical obstruction
             if (enemy.head &&
                 player.x < enemy.head.x + enemy.head.width &&
