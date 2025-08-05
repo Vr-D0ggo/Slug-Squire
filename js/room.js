@@ -103,6 +103,7 @@ export default class Room {
         this.enemies.forEach(enemy => {
             enemy.update(this, player);
 
+            let isColliding = false;
 
             // Head collision: purely damaging, no physical obstruction
             if (enemy.head &&
@@ -110,12 +111,14 @@ export default class Room {
                 player.x + player.width > enemy.head.x &&
                 player.y < enemy.head.y + enemy.head.height &&
                 player.y + player.height > enemy.head.y) {
+                isColliding = true;
                 if (!enemy.hasDealtDamage) {
                     player.health -= enemy.damage;
                     enemy.hasDealtDamage = true;
                 }
             }
 
+            // Mouth collision when attacking
             if (enemy.mouthOpen && enemy.mouth && !enemy.hasDealtDamage) {
                 const m = enemy.mouth;
                 if (
@@ -124,40 +127,57 @@ export default class Room {
                     player.y < m.y + m.height &&
                     player.y + player.height > m.y
                 ) {
+                    isColliding = true;
                     player.health -= enemy.damage;
                     enemy.hasDealtDamage = true;
                 }
             }
 
+            // Body collision with proper blocking
+            const totalPlayerHeight = player.height + player.getLegHeight();
+            const playerBottom = player.y + totalPlayerHeight;
+            const playerPrevBottom = player.y - player.vy + totalPlayerHeight;
+            const playerPrevRight = player.x - player.vx + player.width;
+            const playerPrevLeft = player.x - player.vx;
+
             if (
                 player.x < enemy.x + enemy.width &&
                 player.x + player.width > enemy.x &&
                 player.y < enemy.y + enemy.height &&
-                player.y + player.height > enemy.y
+                playerBottom > enemy.y
             ) {
-                if (player.vy >= 0 && player.y + player.height - player.vy <= enemy.y) {
-                    player.y = enemy.y - player.height;
+                isColliding = true;
+                if (player.vy >= 0 && playerPrevBottom <= enemy.y) {
+                    player.y = enemy.y - totalPlayerHeight;
                     player.vy = 0;
                     player.onGround = true;
                     if (enemy.stun) enemy.stun(30);
-                } else if (player.vy < 0 && player.y - player.vy >= enemy.y + enemy.height) {
+                } else if (player.vy < 0 && player.y >= enemy.y + enemy.height) {
                     player.vy = 0;
                     player.y = enemy.y + enemy.height;
-                } else {
+                } else if (player.vx > 0 && playerPrevRight <= enemy.x) {
                     if (!enemy.hasDealtDamage) {
                         player.health -= enemy.damage;
                         enemy.hasDealtDamage = true;
                     }
                     enemy.mouthOpen = true;
                     enemy.mouthTimer = 20;
-                    if (player.x < enemy.x) {
-                        player.x = enemy.x - player.width;
-                        player.vx = 0;
-                    } else {
-                        player.x = enemy.x + enemy.width;
-                        player.vx = 0;
+                    player.x = enemy.x - player.width;
+                    player.vx = 0;
+                } else if (player.vx < 0 && playerPrevLeft >= enemy.x + enemy.width) {
+                    if (!enemy.hasDealtDamage) {
+                        player.health -= enemy.damage;
+                        enemy.hasDealtDamage = true;
                     }
+                    enemy.mouthOpen = true;
+                    enemy.mouthTimer = 20;
+                    player.x = enemy.x + enemy.width;
+                    player.vx = 0;
                 }
+            }
+
+            if (!isColliding) {
+                enemy.hasDealtDamage = false;
             }
         });
     }
