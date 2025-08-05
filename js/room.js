@@ -103,7 +103,8 @@ export default class Room {
         this.enemies.forEach(enemy => {
             enemy.update(this, player);
 
-            // Head collision damage
+
+            // Head collision: purely damaging, no physical obstruction
             if (enemy.head &&
                 player.x < enemy.head.x + enemy.head.width &&
                 player.x + player.width > enemy.head.x &&
@@ -113,12 +114,6 @@ export default class Room {
                     player.health -= enemy.damage;
                     enemy.hasDealtDamage = true;
                 }
-                if (player.x < enemy.head.x) {
-                    player.x = enemy.head.x - player.width;
-                } else {
-                    player.x = enemy.head.x + enemy.head.width;
-                }
-                player.vx = 0;
             }
 
             if (enemy.mouthOpen && enemy.mouth && !enemy.hasDealtDamage) {
