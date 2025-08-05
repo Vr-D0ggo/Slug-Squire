@@ -103,6 +103,24 @@ export default class Room {
         this.enemies.forEach(enemy => {
             enemy.update(this, player);
 
+            // Head collision damage
+            if (enemy.head &&
+                player.x < enemy.head.x + enemy.head.width &&
+                player.x + player.width > enemy.head.x &&
+                player.y < enemy.head.y + enemy.head.height &&
+                player.y + player.height > enemy.head.y) {
+                if (!enemy.hasDealtDamage) {
+                    player.health -= enemy.damage;
+                    enemy.hasDealtDamage = true;
+                }
+                if (player.x < enemy.head.x) {
+                    player.x = enemy.head.x - player.width;
+                } else {
+                    player.x = enemy.head.x + enemy.head.width;
+                }
+                player.vx = 0;
+            }
+
             if (enemy.mouthOpen && enemy.mouth && !enemy.hasDealtDamage) {
                 const m = enemy.mouth;
                 if (

@@ -154,15 +154,9 @@ export default class Player {
             });
         }
 
-        const barWidth = this.width;
-        const barHeight = 4;
-        const barX = drawX;
-        const barY = drawY - barHeight - 2;
-        const ratio = this.health / this.maxHealth;
-        context.fillStyle = '#550000';
-        context.fillRect(barX, barY, barWidth, barHeight);
-        context.fillStyle = '#ff0000';
-        context.fillRect(barX, barY, barWidth * ratio, barHeight);
+        // Player health is now drawn by the main UI rather than above the
+        // character sprite. Keeping drawing logic here would result in two
+        // health bars, so it has been removed.
     }
 
     update(input, roomBoundaries) {
