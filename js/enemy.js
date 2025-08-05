@@ -61,6 +61,7 @@ export class LittleBrownSkink extends Enemy {
         const mouthWidth = this.headWidth * 0.4;
         const mouthHeight = this.headHeight * 0.6;
         this.mouth = { x: 0, y: 0, width: mouthWidth, height: mouthHeight };
+        this.aggro = false;
     }
 
     stun(duration) {
@@ -79,15 +80,33 @@ export class LittleBrownSkink extends Enemy {
     }
 
     update(room, player) {
+        const bodyLength = this.width + this.headWidth;
+        const playerCenterX = player.x + player.width / 2;
+        const playerCenterY = player.y + player.height / 2;
+        const headX = this.direction === 1 ? this.x + this.width : this.x - this.headWidth;
+        const headCenterX = headX + this.headWidth / 2;
+        const headCenterY = this.y + this.height * 0.1 + this.headHeight / 2;
+        const tailCenterX = this.direction === 1 ? this.x : this.x + this.width;
+        const tailCenterY = this.y + this.height / 2;
+        const distHead = Math.hypot(playerCenterX - headCenterX, playerCenterY - headCenterY);
+        const distTail = Math.hypot(playerCenterX - tailCenterX, playerCenterY - tailCenterY);
+
+        if (!this.aggro && (distHead < bodyLength || distTail < bodyLength * 0.25)) {
+            this.aggro = true;
+        } else if (this.aggro && distHead > bodyLength * 2 && distTail > bodyLength) {
+            this.aggro = false;
+        }
+
         if (this.stunTimer > 0) {
             this.stunTimer--;
             this.vx = 0;
         } else {
-            // Basic chasing behaviour
-            if (player.x + player.width / 2 < this.x + this.width / 2) {
-                this.direction = -1;
-            } else {
-                this.direction = 1;
+            if (this.aggro) {
+                if (playerCenterX < this.x + this.width / 2) {
+                    this.direction = -1;
+                } else {
+                    this.direction = 1;
+                }
             }
             this.vx = this.speed * this.direction;
         }
@@ -121,22 +140,20 @@ export class LittleBrownSkink extends Enemy {
                 }
             }
         });
-      
+
         if (this.mouthTimer > 0) {
             this.mouthTimer--;
             if (this.mouthTimer === 0) {
                 this.mouthOpen = false;
             }
-        } else {
+        } else if (this.aggro) {
             this.attack(player);
         }
 
-        const headX = this.direction === 1 ? this.x + this.width : this.x - this.headWidth;
-        const headY = this.y + this.height * 0.1;
-        this.head = { x: headX, y: headY, width: this.headWidth, height: this.headHeight };
+        this.head = { x: headX, y: this.y + this.height * 0.1, width: this.headWidth, height: this.headHeight };
         const headFront = this.direction === 1 ? headX + this.headWidth : headX;
         this.mouth.x = headFront - this.mouth.width / 2;
-        this.mouth.y = headY + this.headHeight / 2 - this.mouth.height / 2;
+        this.mouth.y = this.y + this.height * 0.1 + this.headHeight / 2 - this.mouth.height / 2;
     }
 
     draw(ctx) {

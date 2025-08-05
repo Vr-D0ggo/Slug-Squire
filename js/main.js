@@ -86,7 +86,9 @@ function gameLoop() {
         if (player.health <= 0) {
             if (player.lastNest) {
                 loadRoom(player.lastNest.roomId);
-                player.setPosition(player.lastNest.x, player.lastNest.y);
+                const groundY = player.lastNest.groundY;
+                const spawnY = groundY - player.height - player.getLegHeight();
+                player.setPosition(player.lastNest.x, spawnY);
             } else {
                 loadRoom(1);
             }
@@ -134,7 +136,11 @@ function handleInteraction() {
             console.log("Interacting with nest.");
             player.health = player.maxHealth;
             nest.hasEggs = true;
-            player.lastNest = { roomId: currentRoom.id, x: player.x, y: player.y };
+            player.lastNest = {
+                roomId: currentRoom.id,
+                x: player.x,
+                groundY: player.y + player.height + player.getLegHeight()
+            };
             // Set staged equipment to currently equipped gear when opening menu at nest
             Object.assign(player.stagedEquipment, player.equipped);
             gameState = 'INVENTORY';
@@ -202,7 +208,11 @@ function startGame() {
     resizeCanvas();
     gameState = 'PLAYING';
     loadRoom(1);
-    player.lastNest = { roomId: currentRoom.id, x: player.x, y: player.y };
+    player.lastNest = {
+        roomId: currentRoom.id,
+        x: player.x,
+        groundY: player.y + player.height + player.getLegHeight()
+    };
     gameLoop();
 }
 
