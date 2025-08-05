@@ -43,7 +43,7 @@ export class LittleBrownSkink extends Enemy {
         const width = 40 * 2.5;      // Slightly shorter than before
         const height = 20 * 0.5;     // Half the player height
 
-        super(x, y - height, width, height, '#ff69b4');
+        super(x, y, width, height, '#ff69b4');
         this.damage = 40;
 
         this.speed = 1.5;
@@ -130,9 +130,12 @@ export class LittleBrownSkink extends Enemy {
         } else {
             this.attack(player);
         }
+
         const headX = this.direction === 1 ? this.x + this.width : this.x - this.headWidth;
-        this.mouth.x = this.direction === 1 ? headX + this.headWidth : headX - this.mouth.width;
-        this.mouth.y = this.y + this.height / 2 - this.mouth.height / 2;
+        const headY = this.y + this.height * 0.1;
+        const headFront = this.direction === 1 ? headX + this.headWidth : headX;
+        this.mouth.x = headFront - this.mouth.width / 2;
+        this.mouth.y = headY + this.headHeight / 2 - this.mouth.height / 2;
     }
 
     draw(ctx) {
@@ -151,10 +154,10 @@ export class LittleBrownSkink extends Enemy {
             ctx.save();
             ctx.translate(this.x + this.width * offset, this.y + this.height);
             ctx.rotate(angle * (offset === 0.25 ? 1 : -1));
-            ctx.fillRect(-legWidth / 2, 0, legWidth, legLen);
+            ctx.fillRect(-legWidth / 2, -legLen, legWidth, legLen);
             ctx.beginPath();
-            ctx.moveTo(-legWidth / 2, legLen * 0.5);
-            ctx.lineTo(legWidth / 2, legLen);
+            ctx.moveTo(-legWidth / 2, -legLen * 0.5);
+            ctx.lineTo(legWidth / 2, -legLen);
             ctx.stroke();
             ctx.restore();
         });

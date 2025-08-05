@@ -103,6 +103,19 @@ export default class Room {
         this.enemies.forEach(enemy => {
             enemy.update(this, player);
 
+            if (enemy.mouthOpen && enemy.mouth && !enemy.hasDealtDamage) {
+                const m = enemy.mouth;
+                if (
+                    player.x < m.x + m.width &&
+                    player.x + player.width > m.x &&
+                    player.y < m.y + m.height &&
+                    player.y + player.height > m.y
+                ) {
+                    player.health -= enemy.damage;
+                    enemy.hasDealtDamage = true;
+                }
+            }
+
             if (
                 player.x < enemy.x + enemy.width &&
                 player.x + player.width > enemy.x &&
@@ -117,27 +130,20 @@ export default class Room {
                 } else if (player.vy < 0 && player.y - player.vy >= enemy.y + enemy.height) {
                     player.vy = 0;
                     player.y = enemy.y + enemy.height;
-                } else if (player.x < enemy.x) {
-                    player.x = enemy.x - player.width;
-                    player.vx = 0;
                 } else {
-                    player.x = enemy.x + enemy.width;
-                    player.vx = 0;
-                }
-            }
-
-
-            if (enemy.mouthOpen && enemy.mouth && !enemy.hasDealtDamage) {
-
-                const m = enemy.mouth;
-                if (
-                    player.x < m.x + m.width &&
-                    player.x + player.width > m.x &&
-                    player.y < m.y + m.height &&
-                    player.y + player.height > m.y
-                ) {
-                    player.health -= enemy.damage;
-                    enemy.hasDealtDamage = true;
+                    if (!enemy.hasDealtDamage) {
+                        player.health -= enemy.damage;
+                        enemy.hasDealtDamage = true;
+                    }
+                    enemy.mouthOpen = true;
+                    enemy.mouthTimer = 20;
+                    if (player.x < enemy.x) {
+                        player.x = enemy.x - player.width;
+                        player.vx = 0;
+                    } else {
+                        player.x = enemy.x + enemy.width;
+                        player.vx = 0;
+                    }
                 }
             }
         });

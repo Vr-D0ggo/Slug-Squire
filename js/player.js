@@ -153,6 +153,16 @@ export default class Player {
                 context.restore();
             });
         }
+
+        const barWidth = this.width;
+        const barHeight = 4;
+        const barX = drawX;
+        const barY = drawY - barHeight - 2;
+        const ratio = this.health / this.maxHealth;
+        context.fillStyle = '#550000';
+        context.fillRect(barX, barY, barWidth, barHeight);
+        context.fillStyle = '#ff0000';
+        context.fillRect(barX, barY, barWidth * ratio, barHeight);
     }
 
     update(input, roomBoundaries) {
