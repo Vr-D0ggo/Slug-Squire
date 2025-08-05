@@ -105,17 +105,21 @@ export default class Room {
 
             let isColliding = false;
 
-            // Head collision: purely damaging, no physical obstruction
+            // Head collision: stop the skink and damage the player continuously
             if (enemy.head &&
                 player.x < enemy.head.x + enemy.head.width &&
                 player.x + player.width > enemy.head.x &&
                 player.y < enemy.head.y + enemy.head.height &&
                 player.y + player.height > enemy.head.y) {
                 isColliding = true;
-                if (!enemy.hasDealtDamage) {
-                    player.health -= enemy.damage;
-                    enemy.hasDealtDamage = true;
+                // Position the skink so its head stays against the player
+                if (enemy.direction === 1) {
+                    enemy.x = player.x - enemy.headWidth - enemy.width;
+                } else {
+                    enemy.x = player.x + player.width + enemy.headWidth;
                 }
+                enemy.vx = 0;
+                player.health -= enemy.damage;
             }
 
             // Mouth collision when attacking

@@ -30,7 +30,8 @@ export default class Player {
         this.sprites.unevolved.move1.src = 'Slug2.png';
         this.sprites.unevolved.move2.src = 'Slug3.png';
 
-        this.baseWidth = 40; this.baseHeight = 20;
+        // Make the unevolved slug sprites larger on screen
+        this.baseWidth = 80; this.baseHeight = 40;
         this.evolvedWidth = 25; this.evolvedHeight = 50;
         this.baseSpeed = 3;
         this.baseJumpPower = 0;
@@ -140,9 +141,8 @@ export default class Player {
         if (!this.isEvolved) {
             let sprite;
             if (Math.abs(this.vx) > 0.1) {
-                sprite = Math.floor(currentWalkCycle) % 2 === 0
-                    ? this.sprites.unevolved.move1
-                    : this.sprites.unevolved.move2;
+                // Always use the third slug image when moving
+                sprite = this.sprites.unevolved.move2;
             } else {
                 sprite = this.sprites.unevolved.idle;
             }
