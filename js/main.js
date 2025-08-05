@@ -90,6 +90,7 @@ function gameLoop() {
             } else {
                 loadRoom(1);
             }
+            currentRoom.checkCollisions(player);
             player.health = player.maxHealth;
         } else if (targetRoom !== null) {
             loadRoom(targetRoom);

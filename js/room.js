@@ -101,6 +101,8 @@ export default class Room {
 
     updateEnemies(player) {
         this.enemies.forEach(enemy => {
+            const prevX = enemy.x;
+            const prevY = enemy.y;
             enemy.update(this, player);
 
             let isColliding = false;
@@ -143,6 +145,8 @@ export default class Room {
             const playerPrevBottom = player.y - player.vy + totalPlayerHeight;
             const playerPrevRight = player.x - player.vx + player.width;
             const playerPrevLeft = player.x - player.vx;
+            const enemyPrevRight = prevX + enemy.width;
+            const enemyPrevLeft = prevX;
 
             if (
                 player.x < enemy.x + enemy.width &&
@@ -159,24 +163,34 @@ export default class Room {
                 } else if (player.vy < 0 && player.y >= enemy.y + enemy.height) {
                     player.vy = 0;
                     player.y = enemy.y + enemy.height;
-                } else if (player.vx > 0 && playerPrevRight <= enemy.x) {
+                } else if (playerPrevRight <= enemyPrevLeft && player.x + player.width > enemy.x) {
                     if (!enemy.hasDealtDamage) {
                         player.health -= enemy.damage;
                         enemy.hasDealtDamage = true;
                     }
                     enemy.mouthOpen = true;
                     enemy.mouthTimer = 20;
-                    player.x = enemy.x - player.width;
-                    player.vx = 0;
-                } else if (player.vx < 0 && playerPrevLeft >= enemy.x + enemy.width) {
+                    if (player.vx > 0) {
+                        player.x = enemy.x - player.width;
+                        player.vx = 0;
+                    } else {
+                        enemy.x = player.x + player.width;
+                        enemy.vx = 0;
+                    }
+                } else if (playerPrevLeft >= enemyPrevRight && player.x < enemy.x + enemy.width) {
                     if (!enemy.hasDealtDamage) {
                         player.health -= enemy.damage;
                         enemy.hasDealtDamage = true;
                     }
                     enemy.mouthOpen = true;
                     enemy.mouthTimer = 20;
-                    player.x = enemy.x + enemy.width;
-                    player.vx = 0;
+                    if (player.vx < 0) {
+                        player.x = enemy.x + enemy.width;
+                        player.vx = 0;
+                    } else {
+                        enemy.x = player.x - enemy.width;
+                        enemy.vx = 0;
+                    }
                 }
             }
 
