@@ -29,7 +29,7 @@ export default class Player {
         this.x = 0; this.y = 0;
         this.vx = 0; this.vy = 0;
         this.onGround = false;
-        this.friction = 0.9;
+        // friction is no longer needed as the player stops immediately
         this.wasJumpPressed = false;
         this.walkCycle = 0;
     }
@@ -153,6 +153,16 @@ export default class Player {
                 context.restore();
             });
         }
+
+        const barWidth = this.width;
+        const barHeight = 4;
+        const barX = drawX;
+        const barY = drawY - barHeight - 2;
+        const ratio = this.health / this.maxHealth;
+        context.fillStyle = '#550000';
+        context.fillRect(barX, barY, barWidth, barHeight);
+        context.fillStyle = '#ff0000';
+        context.fillRect(barX, barY, barWidth * ratio, barHeight);
     }
 
     update(input, roomBoundaries) {
@@ -162,7 +172,8 @@ export default class Player {
         } else if (input.isActionPressed('left')) {
             this.vx = -currentSpeed;
         } else {
-            this.vx *= this.friction;
+            // Stop instantly when no movement keys are pressed
+            this.vx = 0;
         }
         this.x += this.vx;
 

@@ -96,6 +96,7 @@ function gameLoop() {
         drawInteractionPrompt(ctx, player, currentRoom);
         ctx.restore();
 
+        // --- UI Overlay ---
     } else if (gameState === 'INVENTORY') {
         ui.draw(ctx, canvas.width, canvas.height);
     }

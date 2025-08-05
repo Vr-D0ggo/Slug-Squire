@@ -40,10 +40,10 @@ export class Enemy {
 export class LittleBrownSkink extends Enemy {
     constructor(x, y) {
         // Enemy size relative to the unevolved player
-        const width = 40 * 3;        // 3x the player width
+        const width = 40 * 2.5;      // Slightly shorter than before
         const height = 20 * 0.5;     // Half the player height
 
-        super(x, y - height, width, height, '#ff69b4');
+        super(x, y, width, height, '#ff69b4');
         this.damage = 40;
 
         this.speed = 1.5;
@@ -52,19 +52,26 @@ export class LittleBrownSkink extends Enemy {
 
         this.mouthOpen = false;
         this.mouthTimer = 0;
+        this.stunTimer = 0;
 
-        this.headWidth = height;      // large green head
-        this.headHeight = height * 0.9;
+        // Larger head for more cartoonish look
+        this.headWidth = height * 1.5;
+        this.headHeight = height * 1.3;
 
         const mouthWidth = this.headWidth * 0.4;
         const mouthHeight = this.headHeight * 0.6;
         this.mouth = { x: 0, y: 0, width: mouthWidth, height: mouthHeight };
     }
 
+    stun(duration) {
+        this.stunTimer = duration;
+    }
+
     attack(player) {
         const range = this.width;
         const dx = (player.x + player.width / 2) - (this.x + this.width / 2);
-        if (Math.abs(dx) < range && Math.abs(player.y - this.y) < this.height) {
+        const dy = player.y - this.y;
+        if (Math.abs(dx) < range && Math.abs(dy) < this.height * 2) {
             this.mouthOpen = true;
             this.mouthTimer = 20;
             this.hasDealtDamage = false;
@@ -72,14 +79,18 @@ export class LittleBrownSkink extends Enemy {
     }
 
     update(room, player) {
-        // Basic chasing behaviour
-        if (player.x + player.width / 2 < this.x + this.width / 2) {
-            this.direction = -1;
+        if (this.stunTimer > 0) {
+            this.stunTimer--;
+            this.vx = 0;
         } else {
-            this.direction = 1;
+            // Basic chasing behaviour
+            if (player.x + player.width / 2 < this.x + this.width / 2) {
+                this.direction = -1;
+            } else {
+                this.direction = 1;
+            }
+            this.vx = this.speed * this.direction;
         }
-
-        this.vx = this.speed * this.direction;
 
         super.update(room);
 
@@ -119,9 +130,12 @@ export class LittleBrownSkink extends Enemy {
         } else {
             this.attack(player);
         }
+
         const headX = this.direction === 1 ? this.x + this.width : this.x - this.headWidth;
-        this.mouth.x = this.direction === 1 ? headX + this.headWidth : headX - this.mouth.width;
-        this.mouth.y = this.y + this.height / 2 - this.mouth.height / 2;
+        const headY = this.y + this.height * 0.1;
+        const headFront = this.direction === 1 ? headX + this.headWidth : headX;
+        this.mouth.x = headFront - this.mouth.width / 2;
+        this.mouth.y = headY + this.headHeight / 2 - this.mouth.height / 2;
     }
 
     draw(ctx) {
@@ -140,10 +154,10 @@ export class LittleBrownSkink extends Enemy {
             ctx.save();
             ctx.translate(this.x + this.width * offset, this.y + this.height);
             ctx.rotate(angle * (offset === 0.25 ? 1 : -1));
-            ctx.fillRect(-legWidth / 2, 0, legWidth, legLen);
+            ctx.fillRect(-legWidth / 2, -legLen, legWidth, legLen);
             ctx.beginPath();
-            ctx.moveTo(-legWidth / 2, legLen * 0.5);
-            ctx.lineTo(legWidth / 2, legLen);
+            ctx.moveTo(-legWidth / 2, -legLen * 0.5);
+            ctx.lineTo(legWidth / 2, -legLen);
             ctx.stroke();
             ctx.restore();
         });
@@ -168,8 +182,12 @@ export class LittleBrownSkink extends Enemy {
         ctx.fillRect(headX, this.y + this.height * 0.1, this.headWidth, this.headHeight);
 
         if (this.mouthOpen) {
+            const phase = this.mouthTimer / 10 - 1; // 1 to -1 over timer
+            const openRatio = 1 - Math.abs(phase); // 0 -> 1 -> 0
+            const currentHeight = this.mouth.height * openRatio;
+            const mouthY = this.mouth.y + (this.mouth.height - currentHeight) / 2;
             ctx.fillStyle = '#ff9acb';
-            ctx.fillRect(this.mouth.x, this.mouth.y, this.mouth.width, this.mouth.height);
+            ctx.fillRect(this.mouth.x, mouthY, this.mouth.width, currentHeight);
         }
     }
 }
