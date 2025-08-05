@@ -11,7 +11,7 @@ export const levelData = {
         width: ROOM1_WIDTH, 
         height: CANVAS_HEIGHT,
         backgroundColor: '#34495e', 
-        playerStart: { x: 30, y: 560 }, 
+        playerStart: { x: 30, y: 540 },
         platforms: [
             { x: 0, y: 580, width: ROOM1_WIDTH, height: 20, color: '#7f8c8d' },
             { x: 0, y: 0, width: ROOM1_WIDTH, height: 20, color: '#7f8c8d' },
