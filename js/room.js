@@ -65,21 +65,19 @@ export default class Room {
 
             if (nest.hasEggs) {
                 if (!nest.eggs) {
-                    // Create a cluster of eggs spread across the nest
-                    nest.eggs = [
-                        { dx: -50, dy: -3, r: 4, phase: 0 },
-                        { dx: -40, dy: 2, r: 3, phase: 1 },
-                        { dx: -30, dy: -2, r: 4, phase: 2 },
-                        { dx: -20, dy: 0, r: 4, phase: 3 },
-                        { dx: -10, dy: -5, r: 5, phase: 4 },
-                        { dx: -5, dy: 3, r: 3, phase: 5 },
-                        { dx: 5, dy: -6, r: 4, phase: 6 },
-                        { dx: 10, dy: 2, r: 3, phase: 7 },
-                        { dx: 20, dy: -2, r: 5, phase: 8 },
-                        { dx: 30, dy: -4, r: 4, phase: 9 },
-                        { dx: 40, dy: 1, r: 3, phase: 10 },
-                        { dx: 50, dy: -3, r: 4, phase: 11 }
-                    ];
+                    // Fill the nest with enough eggs to cover the mound
+                    nest.eggs = [];
+                    const cols = 12;
+                    const rows = 4;
+                    let phase = 0;
+                    for (let i = 0; i < cols; i++) {
+                        for (let j = 0; j < rows; j++) {
+                            const dx = -nest.width / 2 + (i + 0.5) * (nest.width / cols);
+                            const dy = -nest.height + (j + 0.5) * (nest.height / rows);
+                            const r = 4 + (j % 2);
+                            nest.eggs.push({ dx, dy, r, phase: phase++ });
+                        }
+                    }
                 }
                 const t = Date.now() / 500;
                 context.fillStyle = 'white';
