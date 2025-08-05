@@ -97,6 +97,15 @@ function gameLoop() {
         ctx.restore();
 
         // --- UI Overlay ---
+        const uiBarWidth = 200;
+        const uiBarHeight = 20;
+        const uiRatio = player.health / player.maxHealth;
+        ctx.fillStyle = '#550000';
+        ctx.fillRect(20, 20, uiBarWidth, uiBarHeight);
+        ctx.fillStyle = '#ff0000';
+        ctx.fillRect(20, 20, uiBarWidth * uiRatio, uiBarHeight);
+        ctx.strokeStyle = '#000000';
+        ctx.strokeRect(20, 20, uiBarWidth, uiBarHeight);
     } else if (gameState === 'INVENTORY') {
         ui.draw(ctx, canvas.width, canvas.height);
     }
