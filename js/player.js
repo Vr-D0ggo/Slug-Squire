@@ -6,16 +6,29 @@ export default class Player {
         this.gameHeight = gameHeight;
         
         this.inventory = [];
-        this.isEvolved = false; 
+        this.isEvolved = false;
 
         // --- NEW: Health & State ---
         this.maxHealth = 100;
         this.health = this.maxHealth;
         this.atNest = false; // Is the player currently at a nest?
+        this.lastNest = null; // Last visited nest for respawn
 
         // --- UPDATED: Equipment System ---
         this.equipped = { arms: null, legs: null };
         this.stagedEquipment = { arms: null, legs: null }; // Pending changes
+
+        // --- NEW: Unevolved slug sprites ---
+        this.sprites = {
+            unevolved: {
+                idle: new Image(),
+                move1: new Image(),
+                move2: new Image(),
+            },
+        };
+        this.sprites.unevolved.idle.src = 'Slug1.png';
+        this.sprites.unevolved.move1.src = 'Slug2.png';
+        this.sprites.unevolved.move2.src = 'Slug3.png';
 
         this.baseWidth = 40; this.baseHeight = 20;
         this.evolvedWidth = 25; this.evolvedHeight = 50;
@@ -124,9 +137,19 @@ export default class Player {
             });
         }
 
-        context.fillStyle = '#d35400';
-        context.fillRect(drawX, drawY, this.width, this.height);
-        if (this.isEvolved) {
+        if (!this.isEvolved) {
+            let sprite;
+            if (Math.abs(this.vx) > 0.1) {
+                sprite = Math.floor(currentWalkCycle) % 2 === 0
+                    ? this.sprites.unevolved.move1
+                    : this.sprites.unevolved.move2;
+            } else {
+                sprite = this.sprites.unevolved.idle;
+            }
+            context.drawImage(sprite, drawX, drawY, this.width, this.height);
+        } else {
+            context.fillStyle = '#d35400';
+            context.fillRect(drawX, drawY, this.width, this.height);
             context.fillStyle = '#2ecc71';
             context.fillRect(drawX, drawY, this.width, 7);
         }
