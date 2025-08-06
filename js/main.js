@@ -28,6 +28,12 @@ const input = new InputHandler();
 let currentRoom = null;
 const ui = new InventoryUI(null);
 
+// Day/Night cycle (15 min each)
+const DAY_DURATION = 15 * 60 * 1000;
+const NIGHT_DURATION = 15 * 60 * 1000;
+let cycleStart = Date.now();
+let isDay = true;
+
 const camera = {
     x: 0, y: 0, width: 0, height: 0,
     update: function(player, room) {
@@ -66,6 +72,15 @@ function loadRoom(roomNumber) {
 
 function gameLoop() {
     if (gameState === 'PLAYING' && currentRoom) {
+        const now = Date.now();
+        const elapsed = now - cycleStart;
+        if (isDay && elapsed > DAY_DURATION) {
+            isDay = false;
+            cycleStart = now;
+        } else if (!isDay && elapsed > NIGHT_DURATION) {
+            isDay = true;
+            cycleStart = now;
+        }
         // --- Proximity check for nests ---
         let isNearNest = false;
         currentRoom.nests.forEach(nest => {
@@ -107,6 +122,11 @@ function gameLoop() {
         player.draw(ctx);
         drawInteractionPrompt(ctx, player, currentRoom);
         ctx.restore();
+
+        if (!isDay) {
+            ctx.fillStyle = 'rgba(0,0,0,0.5)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
 
         // --- UI Overlay ---
         const uiBarWidth = 200;

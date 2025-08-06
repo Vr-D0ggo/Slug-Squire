@@ -103,10 +103,22 @@ export default class Room {
             const prevY = enemy.y;
             enemy.update(this, player);
 
+            if (enemy.sleeping) {
+                if (
+                    player.x < enemy.x + enemy.width &&
+                    player.x + player.width > enemy.x &&
+                    player.y < enemy.y + enemy.height &&
+                    player.y + player.height > enemy.y
+                ) {
+                    enemy.sleepTimer = 0;
+                    enemy.sleeping = false;
+                }
+            }
+
             let isColliding = false;
 
             // Head collision: stop the skink and damage the player continuously
-            if (enemy.head &&
+            if (!enemy.sleeping && enemy.head &&
                 player.x < enemy.head.x + enemy.head.width &&
                 player.x + player.width > enemy.head.x &&
                 player.y < enemy.head.y + enemy.head.height &&
@@ -123,7 +135,7 @@ export default class Room {
             }
 
             // Mouth collision when attacking
-            if (enemy.mouthOpen && enemy.mouth && !enemy.hasDealtDamage) {
+            if (!enemy.sleeping && enemy.mouthOpen && enemy.mouth && !enemy.hasDealtDamage) {
                 const m = enemy.mouth;
                 if (
                     player.x < m.x + m.width &&
@@ -161,7 +173,7 @@ export default class Room {
                 } else if (player.vy < 0 && player.y >= enemy.y + enemy.height) {
                     player.vy = 0;
                     player.y = enemy.y + enemy.height;
-                } else if (playerPrevRight <= enemyPrevLeft && player.x + player.width > enemy.x) {
+                } else if (!enemy.sleeping && playerPrevRight <= enemyPrevLeft && player.x + player.width > enemy.x) {
                     if (!enemy.hasDealtDamage) {
                         player.health -= enemy.damage;
                         enemy.hasDealtDamage = true;
@@ -175,7 +187,7 @@ export default class Room {
                         enemy.x = player.x + player.width;
                         enemy.vx = 0;
                     }
-                } else if (playerPrevLeft >= enemyPrevRight && player.x < enemy.x + enemy.width) {
+                } else if (!enemy.sleeping && playerPrevLeft >= enemyPrevRight && player.x < enemy.x + enemy.width) {
                     if (!enemy.hasDealtDamage) {
                         player.health -= enemy.damage;
                         enemy.hasDealtDamage = true;
@@ -196,6 +208,28 @@ export default class Room {
                 enemy.hasDealtDamage = false;
             }
         });
+
+        this.handleSkinkInteractions();
+    }
+
+    handleSkinkInteractions() {
+        for (let i = 0; i < this.enemies.length; i++) {
+            for (let j = i + 1; j < this.enemies.length; j++) {
+                const a = this.enemies[i];
+                const b = this.enemies[j];
+                if (a instanceof LittleBrownSkink && b instanceof LittleBrownSkink) {
+                    if (!a.interacting && !b.interacting && !a.sleeping && !b.sleeping &&
+                        a.x < b.x + b.width &&
+                        a.x + a.width > b.x &&
+                        a.y < b.y + b.height &&
+                        a.y + a.height > b.y) {
+                        const sleeper = Math.random() < 0.5 ? a : b;
+                        a.startInteraction(b, sleeper === a);
+                        b.startInteraction(a, sleeper === b);
+                    }
+                }
+            }
+        }
     }
 
     checkCollisions(player) {
