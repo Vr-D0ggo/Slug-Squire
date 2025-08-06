@@ -2,7 +2,7 @@
 
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 600;
-const ROOM1_WIDTH = 2000;
+const ROOM1_WIDTH = 2300;
 
 export const levelData = {
     1: {
@@ -55,7 +55,8 @@ export const levelData = {
             }
         ],
         enemies: [
-            { type: "little_brown_skink", x: 1300, y: 570 }
+            { type: "little_brown_skink", x: 1300, y: 570 },
+            { type: "little_brown_skink", x: 1800, y: 570 }
         ],
     },
 };
