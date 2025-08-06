@@ -109,29 +109,9 @@ export class LittleBrownSkink extends Enemy {
             this.sleepTimer--;
             if (this.sleepTimer === 0) this.sleeping = false;
             this.vx = 0;
+            this.mouthOpen = false;
             super.update(room);
-            // Bounce off room edges
-            if (this.x <= 0 || this.x + this.width >= room.width) {
-                this.direction *= -1;
-                this.x = Math.max(0, Math.min(this.x, room.width - this.width));
-            }
-            // Bounce off platforms from the sides
-            room.platforms.forEach(p => {
-                if (
-                    this.x < p.x + p.width &&
-                    this.x + this.width > p.x &&
-                    this.y < p.y + p.height &&
-                    this.y + this.height > p.y
-                ) {
-                    if (this.vx > 0 && this.x + this.width - this.vx <= p.x) {
-                        this.x = p.x - this.width;
-                        this.direction = -1;
-                    } else if (this.vx < 0 && this.x - this.vx >= p.x + p.width) {
-                        this.x = p.x + p.width;
-                        this.direction = 1;
-                    }
-                }
-            });
+            // No turning or attacking while asleep
             return;
         }
 
