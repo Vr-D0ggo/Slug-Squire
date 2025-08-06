@@ -2,7 +2,7 @@
 
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 600;
-const ROOM1_WIDTH = 2300;
+const ROOM1_WIDTH = 2600;
 
 export const levelData = {
     1: {
@@ -19,6 +19,9 @@ export const levelData = {
             { x: 1080, y: 565, width: 40, height: 15, color: '#95a5a6' },
             // Taller stone one player width away (scaled to 60% height)
             { x: 1160, y: 550, width: 40, height: 30, color: '#95a5a6' },
+            // Additional stones where the old wall used to be
+            { x: 1960, y: 565, width: 40, height: 15, color: '#95a5a6' },
+            { x: 2040, y: 550, width: 40, height: 30, color: '#95a5a6' },
         ],
         walls: [
             { x: ROOM1_WIDTH - 10, y: 0, width: 10, height: CANVAS_HEIGHT, color: '#27ae60', targetRoom: 1 },
