@@ -15,8 +15,8 @@ export default class Player {
         this.lastNest = null; // Last visited nest for respawn
 
         // --- UPDATED: Equipment System ---
-        this.equipped = { arms: null, legs: null };
-        this.stagedEquipment = { arms: null, legs: null }; // Pending changes
+        this.equipped = { arms: null, legs: null, weapon: null };
+        this.stagedEquipment = { arms: null, legs: null, weapon: null }; // Pending changes
 
         // --- NEW: Unevolved slug sprites ---
         this.sprites = {
@@ -47,6 +47,10 @@ export default class Player {
         // friction is no longer needed as the player stops immediately
         this.wasJumpPressed = false;
         this.walkCycle = 0;
+
+        // --- Death state ---
+        this.isDead = false;
+        this.deathTime = 0;
     }
 
     getLegHeight() {
@@ -65,6 +69,10 @@ export default class Player {
      * Moves a selected item into the staging area, ready for shedding.
      */
     stageItem(item) {
+        if (item.type === 'weapon' && !(this.equipped.arms || this.stagedEquipment.arms)) {
+            console.log('Need arms to equip a weapon.');
+            return;
+        }
         if (item.type in this.stagedEquipment) {
             this.stagedEquipment[item.type] = item;
             console.log(`Staged ${item.name}`);
@@ -103,6 +111,7 @@ export default class Player {
         let total = this.bodyWeightMg;
         if (this.equipped.arms) total += this.equipped.arms.stats.Weight;
         if (this.equipped.legs) total += this.equipped.legs.stats.Weight;
+        if (this.equipped.weapon) total += this.equipped.weapon.stats.Weight;
         return total;
     }
 
@@ -120,15 +129,42 @@ export default class Player {
 
     collectItem(item) {
         if (!this.inventory.find(i => i.id === item.id)) {
-            this.inventory.push(item);
+        this.inventory.push(item);
         }
     }
 
+    getAttackSpeed() {
+        const baseSpeed = this.equipped.arms ? this.equipped.arms.stats.AttackSpeed : 1;
+        const weaponWeight = this.equipped.weapon ? this.equipped.weapon.stats.Weight : 0;
+        const weightRatio = this.bodyWeightMg / (this.bodyWeightMg + weaponWeight);
+        return baseSpeed * weightRatio;
+    }
+
+    getAttackDamage() {
+        const baseDamage = this.equipped.arms ? this.equipped.arms.stats.AttackPower : 1;
+        const sharpness = this.equipped.weapon ? this.equipped.weapon.stats.Sharpness : 1;
+        return baseDamage * sharpness;
+    }
+
+    die() {
+        this.isDead = true;
+        this.deathTime = 0;
+    }
+
     draw(context, overrideX, overrideY, isStatic = false) {
-        const drawX = overrideX !== undefined ? overrideX : this.x;
-        const drawY = overrideY !== undefined ? overrideY : this.y;
+        let drawX = overrideX !== undefined ? overrideX : this.x;
+        let drawY = overrideY !== undefined ? overrideY : this.y;
         const currentWalkCycle = isStatic ? 0 : this.walkCycle;
         const legHeight = this.getLegHeight();
+
+        context.save();
+        if (this.isDead) {
+            const angle = Math.min(this.deathTime / 30, 1) * Math.PI / 2;
+            context.translate(drawX + this.width / 2, drawY + this.height);
+            context.rotate(angle);
+            drawX = -this.width / 2;
+            drawY = -this.height;
+        }
 
         if (this.equipped.legs) {
             context.fillStyle = '#111';
@@ -190,9 +226,14 @@ export default class Player {
         // Player health is now drawn by the main UI rather than above the
         // character sprite. Keeping drawing logic here would result in two
         // health bars, so it has been removed.
+        context.restore();
     }
 
     update(input, roomBoundaries) {
+        if (this.isDead) {
+            this.deathTime++;
+            return;
+        }
         const currentSpeed = this.getCurrentSpeed();
         if (input.isActionPressed('right')) {
             this.vx = currentSpeed;

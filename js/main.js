@@ -28,6 +28,8 @@ const input = new InputHandler();
 let currentRoom = null;
 const ui = new InventoryUI(null);
 
+let deathSequence = null; // { phase: 'fall'|'fadeout'|'fadein', timer: number, alpha: number }
+
 // Day/Night cycle (15 min each)
 const DAY_DURATION = 15 * 60 * 1000;
 const NIGHT_DURATION = 15 * 60 * 1000;
@@ -98,17 +100,10 @@ function gameLoop() {
         currentRoom.updateEnemies(player);
         const targetRoom = currentRoom.checkCollisions(player);
 
-        if (player.health <= 0) {
-            if (player.lastNest) {
-                loadRoom(player.lastNest.roomId);
-                const groundY = player.lastNest.groundY;
-                const spawnY = groundY - player.height - player.getLegHeight();
-                player.setPosition(player.lastNest.x, spawnY);
-            } else {
-                loadRoom(1);
-            }
-            currentRoom.checkCollisions(player);
-            player.health = player.maxHealth;
+        if (player.health <= 0 && !deathSequence) {
+            player.die();
+            deathSequence = { phase: 'fall', timer: 0, alpha: 0 };
+            gameState = 'DYING';
         } else if (targetRoom !== null) {
             loadRoom(targetRoom);
         }
@@ -140,6 +135,57 @@ function gameLoop() {
         ctx.strokeRect(20, 20, uiBarWidth, uiBarHeight);
     } else if (gameState === 'INVENTORY') {
         ui.draw(ctx, canvas.width, canvas.height);
+    } else if (gameState === 'DYING') {
+        if (deathSequence.phase === 'fall') {
+            player.update(input, { width: currentRoom.width, height: currentRoom.height });
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+            ctx.translate(-camera.x, -camera.y);
+            currentRoom.draw(ctx);
+            player.draw(ctx);
+            ctx.restore();
+            if (player.deathTime > 30) {
+                deathSequence.phase = 'fadeout';
+            }
+        } else if (deathSequence.phase === 'fadeout') {
+            deathSequence.alpha += 0.02;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+            ctx.translate(-camera.x, -camera.y);
+            currentRoom.draw(ctx);
+            player.draw(ctx);
+            ctx.restore();
+            ctx.fillStyle = `rgba(0,0,0,${deathSequence.alpha})`;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            if (deathSequence.alpha >= 1) {
+                if (player.lastNest) {
+                    loadRoom(player.lastNest.roomId);
+                    const groundY = player.lastNest.groundY;
+                    const spawnY = groundY - player.height - player.getLegHeight();
+                    player.setPosition(player.lastNest.x, spawnY);
+                } else {
+                    loadRoom(1);
+                }
+                currentRoom.checkCollisions(player);
+                player.health = player.maxHealth;
+                player.isDead = false;
+                deathSequence.phase = 'fadein';
+            }
+        } else if (deathSequence.phase === 'fadein') {
+            deathSequence.alpha -= 0.02;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+            ctx.translate(-camera.x, -camera.y);
+            currentRoom.draw(ctx);
+            player.draw(ctx);
+            ctx.restore();
+            ctx.fillStyle = `rgba(0,0,0,${Math.max(deathSequence.alpha,0)})`;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            if (deathSequence.alpha <= 0) {
+                deathSequence = null;
+                gameState = 'PLAYING';
+            }
+        }
     }
     
     requestAnimationFrame(gameLoop);
@@ -187,7 +233,7 @@ window.addEventListener('keyup', (e) => {
         if (gameState === 'PLAYING') {
             // When opening inventory away from a nest, clear staging
             if (!player.atNest) {
-                player.stagedEquipment = { arms: null, legs: null };
+                player.stagedEquipment = { arms: null, legs: null, weapon: null };
             }
             gameState = 'INVENTORY';
         } else if (gameState === 'INVENTORY') {

@@ -1,5 +1,7 @@
 // js/levels.js
 
+import { items } from './items.js';
+
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 600;
 const ROOM1_WIDTH = 2600;
@@ -8,9 +10,9 @@ export const levelData = {
     1: {
         id: 1,
         name: "Long Drainage Pipe",
-        width: ROOM1_WIDTH, 
+        width: ROOM1_WIDTH,
         height: CANVAS_HEIGHT,
-        backgroundColor: '#34495e', 
+        backgroundColor: '#34495e',
         playerStart: { x: 30, y: 540 },
         platforms: [
             { x: 0, y: 580, width: ROOM1_WIDTH, height: 20, color: '#7f8c8d' },
@@ -31,20 +33,10 @@ export const levelData = {
             { x: 1000, y: 570, width: 50, height: 10, color: '#2ecc71', type: 'evolution_power' }
         ],
         interactables: [
-            {
-                id: 'ant_arms',
-                name: 'Broken Arms',
-                type: 'arms',
-                x: 600, y: 570, width: 30, height: 10, color: '#111',
-                stats: { AttackPower: 1, AttackSpeed: 1, Weight: 5 }
-            },
-            {
-                id: 'ant_legs',
-                name: 'Broken Legs',
-                type: 'legs',
-                x: 850, y: 570, width: 30, height: 10, color: '#111',
-                stats: { Speed: 1, JumpPower: 1, Weight: 5 }
-            }
+            { ...items.arms.brokenArms, x: 600, y: 570 },
+            { ...items.legs.brokenLegs, x: 850, y: 570 },
+            // Sword near the first skink spawn
+            { ...items.swords.usedQtip, x: 1300, y: 560 }
         ],
         // NEW: Array for nests
         nests: [
