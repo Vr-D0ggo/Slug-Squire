@@ -36,14 +36,14 @@ export const levelData = {
                 name: 'Broken Arms',
                 type: 'arms',
                 x: 600, y: 570, width: 30, height: 10, color: '#111',
-                stats: { Attack: 0, Defense: 0, Weight: 5 }
+                stats: { AttackPower: 1, AttackSpeed: 1, Weight: 5 }
             },
             {
                 id: 'ant_legs',
                 name: 'Broken Legs',
                 type: 'legs',
                 x: 850, y: 570, width: 30, height: 10, color: '#111',
-                stats: { Jump: 1, Speed: 1, Weight: 7 }
+                stats: { Speed: 1, JumpPower: 1, Weight: 5 }
             }
         ],
         // NEW: Array for nests

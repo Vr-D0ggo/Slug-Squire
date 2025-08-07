@@ -171,13 +171,16 @@ export class InventoryUI {
         const closePopupRect = { x: popupX + popupWidth - 25, y: popupY + 5, width: 20, height: 20 };
         ctx.font = '20px Arial';
         ctx.fillText('X', closePopupRect.x + 10, closePopupRect.y + 15);
-        
+
         if (this.player.isEvolved) {
+            this.drawItemIcon(ctx, this.popupItem, popupX + popupWidth / 2, popupY + 90, 60);
             ctx.font = '20px Georgia';
             ctx.textAlign = 'left';
-            let yPos = popupY + 90;
+            ctx.textBaseline = 'alphabetic';
+            let yPos = popupY + 150;
             for (const [stat, value] of Object.entries(this.popupItem.stats)) {
-                ctx.fillText(`${stat}: ${value}`, popupX + 30, yPos);
+                const displayValue = stat === 'Weight' ? `${value} mg` : value;
+                ctx.fillText(`${stat}: ${displayValue}`, popupX + 30, yPos);
                 yPos += 30;
             }
             const equipButtonRect = { x: popupX + 50, y: popupY + popupHeight - 70, width: 200, height: 40 };
@@ -185,7 +188,7 @@ export class InventoryUI {
             const buttonText = isStaged ? 'Unstage' : 'Stage for Shedding';
             ctx.fillStyle = isStaged ? '#e67e22' : '#3498db'; // Orange for unstage, Blue for stage
             ctx.fillRect(equipButtonRect.x, equipButtonRect.y, equipButtonRect.width, equipButtonRect.height);
-            
+
             ctx.fillStyle = 'white';
             ctx.font = '24px Georgia';
             ctx.textAlign = 'center';
