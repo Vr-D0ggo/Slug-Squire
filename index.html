@@ -9,20 +9,40 @@
     <div id="game-container">
         <div id="start-screen">
             <h1>Slug Squire</h1>
-            <p>WASD or Arrow Keys to Move | Space to Jump<br>F to Interact | E for Inventory</p>
+            <p>WASD or Arrow Keys to Move | W to Jump<br>F to Interact | E for Inventory<br>Space to Attack</p>
             <button id="start-button">Begin Journey</button>
             <button id="rebind-button">Rebind Controls</button>
         </div>
-        <div id="rebind-screen" class="hidden">
-            <div class="rebind-header">
-                <button id="save-binds">Save Keybinds</button>
-                <button id="reset-binds">Reset Keybinds</button>
+        <div id="pause-menu" class="hidden blur">
+            <button id="resume-button">Resume</button>
+            <button id="settings-button">Settings</button>
+            <button id="exit-button">Exit</button>
+        </div>
+        <div id="settings-menu" class="hidden blur">
+            <div class="settings-tabs">
+                <button id="tab-keybinds" class="active">Keybinds</button>
+                <button id="tab-visuals">Visuals</button>
+                <button id="tab-sfx">SFX</button>
             </div>
-            <div class="bind-row"><span>Move Left</span><button id="left-key-btn">A</button></div>
-            <div class="bind-row"><span>Move Right</span><button id="right-key-btn">D</button></div>
-            <div class="bind-row"><span>Jump</span><button id="jump-key-btn">W</button></div>
-            <div class="bind-row"><span>Inventory</span><button id="inventory-key-btn">E</button></div>
-            <div class="bind-row"><span>Interact</span><button id="interact-key-btn">F</button></div>
+            <div id="settings-keybinds">
+                <div id="rebind-screen">
+                    <div class="rebind-header">
+                        <button id="save-binds">Save Keybinds</button>
+                        <button id="reset-binds">Reset Keybinds</button>
+                    </div>
+                    <div class="bind-row"><span>Move Left</span><button id="left-key-btn">A</button></div>
+                    <div class="bind-row"><span>Move Right</span><button id="right-key-btn">D</button></div>
+                    <div class="bind-row"><span>Jump</span><button id="jump-key-btn">W</button></div>
+                    <div class="bind-row"><span>Inventory</span><button id="inventory-key-btn">E</button></div>
+                    <div class="bind-row"><span>Interact</span><button id="interact-key-btn">F</button></div>
+                </div>
+            </div>
+            <div id="settings-visuals" class="hidden">
+                <label>Brightness <input type="range" id="brightness-slider" min="50" max="150" value="100"></label>
+            </div>
+            <div id="settings-sfx" class="hidden">
+                <p style="color:red">Coming soon</p>
+            </div>
             <button id="back-button">Back</button>
         </div>
         <!-- REMOVED width="800" and height="600" -->

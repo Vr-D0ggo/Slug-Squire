@@ -22,7 +22,22 @@ const backButton = document.getElementById('back-button');
 const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
 
+// Pause and settings menus
+const pauseMenu = document.getElementById('pause-menu');
+const resumeButton = document.getElementById('resume-button');
+const settingsButton = document.getElementById('settings-button');
+const exitButton = document.getElementById('exit-button');
+const settingsMenu = document.getElementById('settings-menu');
+const tabKeybinds = document.getElementById('tab-keybinds');
+const tabVisuals = document.getElementById('tab-visuals');
+const tabSfx = document.getElementById('tab-sfx');
+const settingsKeybinds = document.getElementById('settings-keybinds');
+const settingsVisuals = document.getElementById('settings-visuals');
+const settingsSfx = document.getElementById('settings-sfx');
+const brightnessSlider = document.getElementById('brightness-slider');
+
 let gameState = 'START';
+let previousState = 'START';
 let player = null;
 const input = new InputHandler();
 let currentRoom = null;
@@ -65,11 +80,38 @@ function resizeCanvas() {
 function loadRoom(roomNumber) {
     const roomData = levelData[roomNumber];
     if (!roomData) {
-        if (roomNumber !== 1) loadRoom(1); 
+        if (roomNumber !== 1) loadRoom(1);
         return;
     }
     currentRoom = new Room(roomData);
     player.setPosition(currentRoom.playerStart.x, currentRoom.playerStart.y);
+}
+
+function showSettingsTab(tab) {
+    [settingsKeybinds, settingsVisuals, settingsSfx].forEach(s => s.classList.add('hidden'));
+    [tabKeybinds, tabVisuals, tabSfx].forEach(b => b.classList.remove('active'));
+    switch (tab) {
+        case 'visuals':
+            settingsVisuals.classList.remove('hidden');
+            tabVisuals.classList.add('active');
+            break;
+        case 'sfx':
+            settingsSfx.classList.remove('hidden');
+            tabSfx.classList.add('active');
+            break;
+        default:
+            settingsKeybinds.classList.remove('hidden');
+            tabKeybinds.classList.add('active');
+    }
+}
+
+function openSettings() {
+    previousState = gameState;
+    settingsMenu.classList.remove('hidden');
+    pauseMenu.classList.add('hidden');
+    startScreen.classList.add('hidden');
+    showSettingsTab('keybinds');
+    gameState = 'SETTINGS';
 }
 
 function gameLoop() {
@@ -227,6 +269,30 @@ function handleInteraction() {
     }
 }
 
+window.addEventListener('keydown', (e) => {
+    const key = e.key;
+    if (key === 'Escape') {
+        if (gameState === 'PLAYING' || gameState === 'INVENTORY') {
+            pauseMenu.classList.remove('hidden');
+            gameState = 'PAUSED';
+        } else if (gameState === 'PAUSED') {
+            pauseMenu.classList.add('hidden');
+            gameState = 'PLAYING';
+        } else if (gameState === 'SETTINGS') {
+            settingsMenu.classList.add('hidden');
+            if (previousState === 'PAUSED') {
+                pauseMenu.classList.remove('hidden');
+            } else {
+                startScreen.classList.remove('hidden');
+            }
+            gameState = previousState;
+        }
+    }
+    if (key.toLowerCase() === input.bindings.attack && gameState === 'PLAYING') {
+        player.attack(currentRoom.enemies);
+    }
+});
+
 window.addEventListener('keyup', (e) => {
     const key = e.key.toLowerCase();
     if (key === input.bindings.inventory && gameState !== 'START') {
@@ -270,6 +336,8 @@ canvas.addEventListener('mouseup', (e) => {
 function startGame() {
     startScreen.classList.add('hidden');
     rebindScreen.classList.add('hidden');
+    pauseMenu.classList.add('hidden');
+    settingsMenu.classList.add('hidden');
     canvas.style.display = 'block';
     resizeCanvas();
     gameState = 'PLAYING';
@@ -294,14 +362,19 @@ function updateBindDisplay() {
 }
 
 rebindButton.addEventListener('click', () => {
-    startScreen.classList.add('hidden');
-    rebindScreen.classList.remove('hidden');
     updateBindDisplay();
+    openSettings();
 });
 
 backButton.addEventListener('click', () => {
-    rebindScreen.classList.add('hidden');
-    startScreen.classList.remove('hidden');
+    settingsMenu.classList.add('hidden');
+    if (previousState === 'PAUSED') {
+        pauseMenu.classList.remove('hidden');
+        gameState = 'PAUSED';
+    } else {
+        startScreen.classList.remove('hidden');
+        gameState = 'START';
+    }
 });
 
 leftKeyBtn.addEventListener('click', () => {
@@ -328,4 +401,30 @@ saveBindsBtn.addEventListener('click', () => {
 
 resetBindsBtn.addEventListener('click', () => {
     input.resetBindings();
+});
+
+resumeButton.addEventListener('click', () => {
+    pauseMenu.classList.add('hidden');
+    gameState = 'PLAYING';
+});
+
+settingsButton.addEventListener('click', () => {
+    updateBindDisplay();
+    openSettings();
+});
+
+exitButton.addEventListener('click', () => {
+    pauseMenu.classList.add('hidden');
+    canvas.style.display = 'none';
+    startScreen.classList.remove('hidden');
+    gameState = 'START';
+});
+
+tabKeybinds.addEventListener('click', () => { updateBindDisplay(); showSettingsTab('keybinds'); });
+tabVisuals.addEventListener('click', () => showSettingsTab('visuals'));
+tabSfx.addEventListener('click', () => showSettingsTab('sfx'));
+
+brightnessSlider.addEventListener('input', () => {
+    const val = brightnessSlider.value / 100;
+    canvas.style.filter = `brightness(${val})`;
 });
