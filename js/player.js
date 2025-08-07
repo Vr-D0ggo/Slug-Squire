@@ -35,7 +35,8 @@ export default class Player {
         this.evolvedWidth = 25; this.evolvedHeight = 50;
         this.baseSpeed = 3;
         this.baseJumpPower = 0;
-        this.baseWeight = 0.8;
+        this.baseWeight = 0.8; // Gravity constant
+        this.bodyWeightMg = 500; // Weight of the slug in mg
         const jumpHeight = this.evolvedHeight / 2;
         this.jumpVelocityUnit = -Math.sqrt(2 * this.baseWeight * jumpHeight);
         
@@ -97,15 +98,24 @@ export default class Player {
         this.vy = 0;
         console.log("Exoskeleton shed. Equipment updated.");
     }
-    
+
+    getTotalWeightMg() {
+        let total = this.bodyWeightMg;
+        if (this.equipped.arms) total += this.equipped.arms.stats.Weight;
+        if (this.equipped.legs) total += this.equipped.legs.stats.Weight;
+        return total;
+    }
+
     getCurrentSpeed() {
         const gearBonus = this.equipped.legs ? this.equipped.legs.stats.Speed : 0;
-        return this.baseSpeed + gearBonus;
+        const weightRatio = this.bodyWeightMg / this.getTotalWeightMg();
+        return (this.baseSpeed + gearBonus) * weightRatio;
     }
 
     getCurrentJumpPower() {
-        const gearBonus = this.equipped.legs ? this.equipped.legs.stats.Jump * this.jumpVelocityUnit : 0;
-        return this.baseJumpPower + gearBonus;
+        const gearBonus = this.equipped.legs ? this.equipped.legs.stats.JumpPower * this.jumpVelocityUnit : 0;
+        const weightRatio = this.bodyWeightMg / this.getTotalWeightMg();
+        return (this.baseJumpPower + gearBonus) * weightRatio;
     }
 
     collectItem(item) {
