@@ -20,6 +20,7 @@ const saveBindsBtn = document.getElementById('save-binds');
 const resetBindsBtn = document.getElementById('reset-binds');
 const backButton = document.getElementById('back-button');
 const canvas = document.getElementById('game-canvas');
+canvas.setAttribute('tabindex', '0');
 const ctx = canvas.getContext('2d');
 
 // Pause and settings menus
@@ -272,6 +273,7 @@ function handleInteraction() {
 window.addEventListener('keydown', (e) => {
     const key = e.key;
     if (key === 'Escape') {
+        e.preventDefault();
         if (gameState === 'PLAYING' || gameState === 'INVENTORY') {
             pauseMenu.classList.remove('hidden');
             gameState = 'PAUSED';
@@ -287,6 +289,7 @@ window.addEventListener('keydown', (e) => {
             }
             gameState = previousState;
         }
+        canvas.focus();
     }
     if (key.toLowerCase() === input.bindings.attack && gameState === 'PLAYING') {
         player.attack(currentRoom.enemies);
@@ -340,6 +343,7 @@ function startGame() {
     settingsMenu.classList.add('hidden');
     canvas.style.display = 'block';
     resizeCanvas();
+    canvas.focus();
     gameState = 'PLAYING';
     loadRoom(1);
     player.lastNest = {
@@ -406,6 +410,7 @@ resetBindsBtn.addEventListener('click', () => {
 resumeButton.addEventListener('click', () => {
     pauseMenu.classList.add('hidden');
     gameState = 'PLAYING';
+    canvas.focus();
 });
 
 settingsButton.addEventListener('click', () => {
