@@ -81,17 +81,12 @@ html, body {
 }
 
 #rebind-screen {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
     background-color: #282c34;
     color: #e0e0e0;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding-top: 50px;
+    padding-top: 20px;
 }
 
 .rebind-header {
@@ -118,4 +113,41 @@ html, body {
 
 .hidden {
     display: none !important;
+}
+
+.blur {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(5px);
+    background: rgba(0,0,0,0.5);
+    color: #e0e0e0;
+}
+
+#pause-menu button,
+#settings-menu button {
+    margin: 10px;
+    padding: 10px 20px;
+    background: transparent;
+    border: 2px solid #aaa;
+    color: #e0e0e0;
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    cursor: pointer;
+}
+
+.settings-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.settings-tabs button.active {
+    background-color: #e0e0e0;
+    color: #282c34;
 }

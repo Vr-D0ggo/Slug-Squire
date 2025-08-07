@@ -51,6 +51,9 @@ export default class Player {
         // --- Death state ---
         this.isDead = false;
         this.deathTime = 0;
+
+        // --- Attack cooldown ---
+        this.attackCooldown = 0;
     }
 
     getLegHeight() {
@@ -262,10 +265,27 @@ export default class Player {
         this.y += this.vy;
         this.onGround = false;
 
+        if (this.attackCooldown > 0) this.attackCooldown--;
+
         const leftBoundary = 10;
         const rightBoundary = roomBoundaries.width - this.width - 10;
         if (this.x < leftBoundary) this.x = leftBoundary;
         if (this.x > rightBoundary) this.x = rightBoundary;
+    }
+
+    attack(enemies) {
+        if (!this.equipped.weapon || this.attackCooldown > 0) return;
+        const range = 60;
+        for (let i = enemies.length - 1; i >= 0; i--) {
+            const enemy = enemies[i];
+            const dx = (this.x + this.width / 2) - (enemy.x + enemy.width / 2);
+            const dy = (this.y + this.height / 2) - (enemy.y + enemy.height / 2);
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            if (distance < range) {
+                enemies.splice(i, 1);
+            }
+        }
+        this.attackCooldown = 30;
     }
 
     setPosition(x, y) {

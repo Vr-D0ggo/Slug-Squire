@@ -7,7 +7,7 @@ export const items = {
             width: 30,
             height: 10,
             color: '#111',
-            stats: { AttackPower: 1, AttackSpeed: 1, Weight: 5 },
+            stats: { AttackPower: 1, AttackSpeed: 1, Weight: 20 },
             description: 'Barely hanging on, but better than nothing.'
         }
     },
@@ -19,7 +19,7 @@ export const items = {
             width: 30,
             height: 10,
             color: '#111',
-            stats: { Speed: 1, JumpPower: 1, Weight: 5 },
+            stats: { Speed: 1, JumpPower: 1, Weight: 20 },
             description: 'They wobble, but they walk.'
         }
     },
@@ -32,7 +32,7 @@ export const items = {
             height: 10,
             color: '#ffffff',
             tipColor: '#ffff00',
-            stats: { Weight: 280, Sharpness: 1 },
+            stats: { Weight: 28, Sharpness: 1 },
             description: 'You probably should not touch the yellow end.'
         }
     },
