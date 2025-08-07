@@ -105,6 +105,13 @@ export class InventoryUI {
                 width: slotSize,
                 height: slotSize
             },
+            weapon: {
+                type: 'weapon',
+                x: previewBoxX + 20 + slotSize,
+                y: previewBoxY + 10,
+                width: slotSize,
+                height: slotSize
+            },
             legs: {
                 type: 'legs',
                 x: previewBoxX + previewBoxWidth - slotSize - 10,
@@ -172,21 +179,33 @@ export class InventoryUI {
         ctx.font = '20px Arial';
         ctx.fillText('X', closePopupRect.x + 10, closePopupRect.y + 15);
 
+        this.drawItemIcon(ctx, this.popupItem, popupX + popupWidth / 2, popupY + 90, 60);
+        ctx.font = '20px Georgia';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'alphabetic';
+        let yPos = popupY + 150;
         if (this.player.isEvolved) {
-            this.drawItemIcon(ctx, this.popupItem, popupX + popupWidth / 2, popupY + 90, 60);
-            ctx.font = '20px Georgia';
-            ctx.textAlign = 'left';
-            ctx.textBaseline = 'alphabetic';
-            let yPos = popupY + 150;
             for (const [stat, value] of Object.entries(this.popupItem.stats)) {
                 const displayValue = stat === 'Weight' ? `${value} mg` : value;
                 ctx.fillText(`${stat}: ${displayValue}`, popupX + 30, yPos);
                 yPos += 30;
             }
+        } else {
+            ctx.fillStyle = '#ffc107';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText("Please evolve to use this item.", popupX + popupWidth / 2, popupY + popupHeight / 2);
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'alphabetic';
+            ctx.fillStyle = 'white';
+        }
+        ctx.font = '16px Georgia';
+        ctx.fillText(this.popupItem.description, popupX + 30, yPos);
+        if (this.player.isEvolved) {
             const equipButtonRect = { x: popupX + 50, y: popupY + popupHeight - 70, width: 200, height: 40 };
             const isStaged = this.player.stagedEquipment[this.popupItem.type] === this.popupItem;
             const buttonText = isStaged ? 'Unstage' : 'Stage for Shedding';
-            ctx.fillStyle = isStaged ? '#e67e22' : '#3498db'; // Orange for unstage, Blue for stage
+            ctx.fillStyle = isStaged ? '#e67e22' : '#3498db';
             ctx.fillRect(equipButtonRect.x, equipButtonRect.y, equipButtonRect.width, equipButtonRect.height);
 
             ctx.fillStyle = 'white';
@@ -194,12 +213,6 @@ export class InventoryUI {
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(buttonText, equipButtonRect.x + equipButtonRect.width / 2, equipButtonRect.y + 20);
-        } else {
-            ctx.fillStyle = '#ffc107';
-            ctx.font = '20px Georgia';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText("Please evolve to use this item.", popupX + popupWidth / 2, popupY + popupHeight / 2);
         }
         
         ctx.textBaseline = 'alphabetic'; // Reset baseline
@@ -233,7 +246,10 @@ export class InventoryUI {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.font = `${size}px Arial`;
-        const text = item.type === 'arms' ? 'A' : 'L';
+        let text = 'I';
+        if (item.type === 'arms') text = 'A';
+        else if (item.type === 'legs') text = 'L';
+        else if (item.type === 'weapon') text = 'S';
         ctx.fillText(text, centerX, centerY);
     }
 

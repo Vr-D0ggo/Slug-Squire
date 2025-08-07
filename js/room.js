@@ -46,6 +46,10 @@ export default class Room {
         this.interactables.forEach(item => {
             context.fillStyle = item.color;
             context.fillRect(item.x, item.y, item.width, item.height);
+            if (item.tipColor) {
+                context.fillStyle = item.tipColor;
+                context.fillRect(item.x + item.width - item.width * 0.2, item.y, item.width * 0.2, item.height);
+            }
         });
         
         this.nests.forEach(nest => {
