@@ -22,6 +22,7 @@ html, body {
     left: 0;
     display: none; /* Hidden by default */
     background-color: #000;
+    z-index: 0;
 }
 
 /* Make the start screen also take up the entire container */
@@ -128,6 +129,7 @@ html, body {
     backdrop-filter: blur(5px);
     background: rgba(0,0,0,0.5);
     color: #e0e0e0;
+    z-index: 10;
 }
 
 #pause-menu button,
