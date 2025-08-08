@@ -16,6 +16,7 @@ const rightKeyBtn = document.getElementById('right-key-btn');
 const jumpKeyBtn = document.getElementById('jump-key-btn');
 const inventoryKeyBtn = document.getElementById('inventory-key-btn');
 const interactKeyBtn = document.getElementById('interact-key-btn');
+const runKeyBtn = document.getElementById('run-key-btn');
 const saveBindsBtn = document.getElementById('save-binds');
 const resetBindsBtn = document.getElementById('reset-binds');
 const backButton = document.getElementById('back-button');
@@ -27,6 +28,7 @@ const ctx = canvas.getContext('2d');
 const pauseMenu = document.getElementById('pause-menu');
 const resumeButton = document.getElementById('resume-button');
 const settingsButton = document.getElementById('settings-button');
+const keybindsButton = document.getElementById('keybinds-button');
 const exitButton = document.getElementById('exit-button');
 const settingsMenu = document.getElementById('settings-menu');
 const tabKeybinds = document.getElementById('tab-keybinds');
@@ -250,6 +252,7 @@ function handleInteraction() {
                 x: player.x,
                 groundY: player.y + player.height + player.getLegHeight()
             };
+            localStorage.setItem('lastNest', JSON.stringify(player.lastNest));
             // Set staged equipment to currently equipped gear when opening menu at nest
             Object.assign(player.stagedEquipment, player.equipped);
             gameState = 'INVENTORY';
@@ -345,12 +348,33 @@ function startGame() {
     resizeCanvas();
     canvas.focus();
     gameState = 'PLAYING';
-    loadRoom(1);
-    player.lastNest = {
-        roomId: currentRoom.id,
-        x: player.x,
-        groundY: player.y + player.height + player.getLegHeight()
-    };
+    const savedNest = localStorage.getItem('lastNest');
+    if (savedNest) {
+        try {
+            const nest = JSON.parse(savedNest);
+            loadRoom(nest.roomId);
+            const spawnY = nest.groundY - player.height - player.getLegHeight();
+            player.setPosition(nest.x, spawnY);
+            player.lastNest = nest;
+            currentRoom.checkCollisions(player);
+        } catch (e) {
+            loadRoom(1);
+            player.lastNest = {
+                roomId: currentRoom.id,
+                x: player.x,
+                groundY: player.y + player.height + player.getLegHeight()
+            };
+            currentRoom.checkCollisions(player);
+        }
+    } else {
+        loadRoom(1);
+        player.lastNest = {
+            roomId: currentRoom.id,
+            x: player.x,
+            groundY: player.y + player.height + player.getLegHeight()
+        };
+        currentRoom.checkCollisions(player);
+    }
     gameLoop();
 }
 
@@ -363,6 +387,7 @@ function updateBindDisplay() {
     jumpKeyBtn.textContent = input.bindings.jump.toUpperCase();
     inventoryKeyBtn.textContent = input.bindings.inventory.toUpperCase();
     interactKeyBtn.textContent = input.bindings.interact.toUpperCase();
+    runKeyBtn.textContent = input.bindings.run.toUpperCase();
 }
 
 rebindButton.addEventListener('click', () => {
@@ -396,6 +421,9 @@ inventoryKeyBtn.addEventListener('click', () => {
 interactKeyBtn.addEventListener('click', () => {
     input.startRebind('interact');
 });
+runKeyBtn.addEventListener('click', () => {
+    input.startRebind('run');
+});
 
 input.onRebindComplete = updateBindDisplay;
 
@@ -417,8 +445,13 @@ settingsButton.addEventListener('click', () => {
     updateBindDisplay();
     openSettings();
 });
+keybindsButton.addEventListener('click', () => {
+    updateBindDisplay();
+    openSettings();
+});
 
 exitButton.addEventListener('click', () => {
+    localStorage.setItem('lastNest', JSON.stringify(player.lastNest));
     pauseMenu.classList.add('hidden');
     canvas.style.display = 'none';
     startScreen.classList.remove('hidden');

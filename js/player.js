@@ -54,6 +54,10 @@ export default class Player {
 
         // --- Attack cooldown ---
         this.attackCooldown = 0;
+        this.isRunning = false;
+        this.runMultiplier = 2;
+        this.slashTimer = 0;
+        this.slashDuration = 0;
     }
 
     getLegHeight() {
@@ -226,6 +230,25 @@ export default class Player {
             });
         }
 
+        if (this.equipped.weapon) {
+            context.fillStyle = '#bbb';
+            const swordWidth = 4;
+            const swordHeight = 25;
+            if (this.isRunning) {
+                context.fillRect(drawX + this.width / 2 - swordWidth / 2, drawY - swordHeight, swordWidth, swordHeight);
+            } else if (this.slashTimer > 0) {
+                const progress = 1 - this.slashTimer / this.slashDuration;
+                context.save();
+                context.translate(drawX + this.width, drawY + this.height * 0.5);
+                const angle = progress * Math.PI;
+                context.rotate(angle);
+                context.fillRect(0, -swordWidth / 2, swordHeight, swordWidth);
+                context.restore();
+            } else {
+                context.fillRect(drawX + this.width, drawY + this.height * 0.5 - swordHeight, swordWidth, swordHeight);
+            }
+        }
+
         // Player health is now drawn by the main UI rather than above the
         // character sprite. Keeping drawing logic here would result in two
         // health bars, so it has been removed.
@@ -237,20 +260,26 @@ export default class Player {
             this.deathTime++;
             return;
         }
-        const currentSpeed = this.getCurrentSpeed();
-        if (input.isActionPressed('right')) {
-            this.vx = currentSpeed;
-        } else if (input.isActionPressed('left')) {
-            this.vx = -currentSpeed;
-        } else {
-            // Stop instantly when no movement keys are pressed
+        if (this.slashTimer > 0) {
+            this.slashTimer--;
             this.vx = 0;
+        } else {
+            this.isRunning = input.isActionPressed('run');
+            const currentSpeed = this.getCurrentSpeed();
+            const speed = this.isRunning ? currentSpeed * this.runMultiplier : currentSpeed;
+            if (input.isActionPressed('right')) {
+                this.vx = speed;
+            } else if (input.isActionPressed('left')) {
+                this.vx = -speed;
+            } else {
+                // Stop instantly when no movement keys are pressed
+                this.vx = 0;
+            }
+            if (Math.abs(this.vx) > 0.1 && this.onGround) {
+                this.walkCycle += this.isRunning ? 0.5 : 0.25;
+            }
         }
         this.x += this.vx;
-
-        if (Math.abs(this.vx) > 0.1 && this.onGround) {
-            this.walkCycle += 0.25;
-        }
 
         const jumpKeysArePressed = input.isActionPressed('jump');
         const jumpPower = this.getCurrentJumpPower();
@@ -275,7 +304,7 @@ export default class Player {
 
     attack(enemies) {
         if (!this.equipped.weapon || this.attackCooldown > 0) return;
-        const range = 60;
+        const range = this.isRunning ? 100 : 60;
         for (let i = enemies.length - 1; i >= 0; i--) {
             const enemy = enemies[i];
             const dx = (this.x + this.width / 2) - (enemy.x + enemy.width / 2);
@@ -286,6 +315,10 @@ export default class Player {
             }
         }
         this.attackCooldown = 30;
+        this.slashDuration = this.isRunning ? 20 : 10;
+        this.slashTimer = this.slashDuration;
+        this.vx = 0;
+        this.isRunning = false;
     }
 
     setPosition(x, y) {

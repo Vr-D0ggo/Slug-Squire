@@ -8,7 +8,8 @@ export default class InputHandler {
             jump: 'w',
             inventory: 'e',
             interact: 'f',
-            attack: ' '
+            attack: ' ',
+            run: 'shift'
         };
         this.awaitingAction = null;
         this.onRebindComplete = null;
@@ -61,7 +62,8 @@ export default class InputHandler {
             jump: 'w',
             inventory: 'e',
             interact: 'f',
-            attack: ' '
+            attack: ' ',
+            run: 'shift'
         };
         if (this.onRebindComplete) this.onRebindComplete();
     }
