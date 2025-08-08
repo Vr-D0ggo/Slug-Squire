@@ -132,7 +132,17 @@ html, body {
     z-index: 10;
 }
 
-#pause-menu button,
+#pause-menu button {
+    margin: 10px;
+    padding: 20px 40px;
+    background: transparent;
+    border: 2px solid #aaa;
+    color: #e0e0e0;
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    cursor: pointer;
+    font-size: 1.2em;
+}
+
 #settings-menu button {
     margin: 10px;
     padding: 10px 20px;
