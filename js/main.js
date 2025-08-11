@@ -24,7 +24,6 @@ const rightKeyBtn = document.getElementById('right-key-btn');
 const jumpKeyBtn = document.getElementById('jump-key-btn');
 const inventoryKeyBtn = document.getElementById('inventory-key-btn');
 const interactKeyBtn = document.getElementById('interact-key-btn');
-const runKeyBtn = document.getElementById('run-key-btn');
 const saveBindsBtn = document.getElementById('save-binds');
 const resetBindsBtn = document.getElementById('reset-binds');
 const backButton = document.getElementById('back-button');
@@ -498,7 +497,6 @@ function updateBindDisplay() {
     jumpKeyBtn.textContent = input.bindings.jump.toUpperCase();
     inventoryKeyBtn.textContent = input.bindings.inventory.toUpperCase();
     interactKeyBtn.textContent = input.bindings.interact.toUpperCase();
-    runKeyBtn.textContent = input.bindings.run.toUpperCase();
 }
 
 rebindButton.addEventListener('click', () => {
@@ -531,9 +529,6 @@ inventoryKeyBtn.addEventListener('click', () => {
 });
 interactKeyBtn.addEventListener('click', () => {
     input.startRebind('interact');
-});
-runKeyBtn.addEventListener('click', () => {
-    input.startRebind('run');
 });
 
 input.onRebindComplete = updateBindDisplay;

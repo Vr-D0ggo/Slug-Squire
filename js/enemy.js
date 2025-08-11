@@ -51,6 +51,7 @@ export class LittleBrownSkink extends Enemy {
         const height = 20 * 0.5;     // Half the player height
 
         super(x, y, width, height, '#ff69b4', id, respawnType);
+        this.health = 20;
         this.damage = 40;
         this.damageType = 'biting';
         this.weaknesses = { slashing: 0.5, biting: 0.5 };
