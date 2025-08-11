@@ -12,6 +12,7 @@ export class InventoryUI {
 
         this.itemRects = [];
         this.slotRects = {};
+        this.images = {}; // cache for item images
     }
 
     /**
@@ -120,6 +121,13 @@ export class InventoryUI {
                 type: 'wings',
                 x: previewBoxX + (previewBoxWidth - slotSize) / 2,
                 y: previewBoxY + 10,
+                width: slotSize,
+                height: slotSize
+            },
+            armor: {
+                type: 'armor',
+                x: previewBoxX + 10,
+                y: previewBoxY + previewBoxHeight - slotSize - 10,
                 width: slotSize,
                 height: slotSize
             }
@@ -243,16 +251,29 @@ export class InventoryUI {
     }
 
     drawItemIcon(ctx, item, centerX, centerY, size) {
-        ctx.fillStyle = '#ccc';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.font = `${size}px Arial`;
-        let text = 'I';
-        if (item.type === 'arms') text = 'A';
-        else if (item.type === 'legs') text = 'L';
-        else if (item.type === 'weapon') text = 'S';
-        else if (item.type === 'wings') text = 'W';
-        ctx.fillText(text, centerX, centerY);
+        if (item.image) {
+            let img = this.images[item.image];
+            if (!img) {
+                img = new Image();
+                img.src = item.image;
+                this.images[item.image] = img;
+            }
+            if (img.complete) {
+                ctx.drawImage(img, centerX - size/2, centerY - size/2, size, size);
+            }
+        } else {
+            ctx.fillStyle = '#ccc';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.font = `${size}px Arial`;
+            let text = 'I';
+            if (item.type === 'arms') text = 'A';
+            else if (item.type === 'legs') text = 'L';
+            else if (item.type === 'weapon') text = 'S';
+            else if (item.type === 'wings') text = 'W';
+            else if (item.type === 'armor') text = 'C';
+            ctx.fillText(text, centerX, centerY);
+        }
     }
 
     /**

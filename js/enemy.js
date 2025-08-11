@@ -77,6 +77,10 @@ export class LittleBrownSkink extends Enemy {
         this.willSleep = false;
         this.sleeping = false;
         this.sleepTimer = 0;
+
+        // Post-hit behavior
+        this.afterHitState = null; // 'retreat' or 'charge'
+        this.afterHitTimer = 0;
     }
 
     stun(duration) {
@@ -104,6 +108,12 @@ export class LittleBrownSkink extends Enemy {
             this.mouthTimer = 20;
             this.hasDealtDamage = false;
         }
+    }
+
+    onDealDamage(player) {
+        this.afterHitState = 'retreat';
+        this.afterHitTimer = 30;
+        this.direction = player.x < this.x ? 1 : -1;
     }
 
     update(room, player) {
@@ -173,6 +183,32 @@ export class LittleBrownSkink extends Enemy {
                     }
                 }
             });
+            return;
+        }
+
+        if (this.afterHitState) {
+            if (this.afterHitState === 'retreat') {
+                this.vx = this.baseSpeed * 2 * this.direction;
+                this.afterHitTimer--;
+                if (this.afterHitTimer <= 0) {
+                    this.afterHitState = 'charge';
+                    this.afterHitTimer = 30;
+                    this.direction = player.x < this.x ? -1 : 1;
+                }
+            } else if (this.afterHitState === 'charge') {
+                this.vx = this.baseSpeed * 2.5 * this.direction;
+                this.afterHitTimer--;
+                if (this.afterHitTimer <= 0) {
+                    this.afterHitState = null;
+                }
+            }
+            this.mouthOpen = false;
+            super.update(room);
+            const headX = this.direction === 1 ? this.x + this.width : this.x - this.headWidth;
+            this.head = { x: headX, y: this.y + this.height * 0.1, width: this.headWidth, height: this.headHeight };
+            const headFront = this.direction === 1 ? headX + this.headWidth : headX;
+            this.mouth.x = headFront - this.mouth.width / 2;
+            this.mouth.y = this.y + this.height * 0.1 + this.headHeight / 2 - this.mouth.height / 2;
             return;
         }
 
