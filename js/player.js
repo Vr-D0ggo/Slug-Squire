@@ -62,6 +62,9 @@ export default class Player {
         this.runMultiplier = 2;
         this.slashTimer = 0;
         this.slashDuration = 0;
+
+        // Direction the player is facing; used for sprite flipping
+        this.facingRight = true;
     }
 
     getLegHeight() {
@@ -172,6 +175,12 @@ export default class Player {
         const armAngle = Math.sin(currentWalkCycle + Math.PI / 2) * 0.3;
 
         context.save();
+        if (!this.facingRight) {
+            context.translate(drawX + this.width, drawY);
+            context.scale(-1, 1);
+            drawX = 0;
+            drawY = 0;
+        }
         if (this.isDead) {
             const angle = Math.min(this.deathTime / 30, 1) * Math.PI / 2;
             context.translate(drawX + this.width / 2, drawY + this.height);
@@ -272,8 +281,10 @@ export default class Player {
             const currentSpeed = this.getCurrentSpeed();
             if (input.isActionPressed('right')) {
                 this.vx = currentSpeed;
+                this.facingRight = true;
             } else if (input.isActionPressed('left')) {
                 this.vx = -currentSpeed;
+                this.facingRight = false;
             } else {
                 // Stop instantly when no movement keys are pressed
                 this.vx = 0;
@@ -317,16 +328,27 @@ export default class Player {
         this.walkTime = 0;
     }
 
-    attack(enemies) {
-        if (!this.equipped.weapon || this.attackCooldown > 0) return;
+    attack(enemies, respawnData, roomId) {
+        if (!this.equipped.weapon || this.attackCooldown > 0) return false;
         const range = this.isRunning ? 100 : 60;
+        let removed = false;
         for (let i = enemies.length - 1; i >= 0; i--) {
             const enemy = enemies[i];
             const dx = (this.x + this.width / 2) - (enemy.x + enemy.width / 2);
             const dy = (this.y + this.height / 2) - (enemy.y + enemy.height / 2);
             const distance = Math.sqrt(dx * dx + dy * dy);
             if (distance < range) {
+                if (respawnData && roomId !== undefined) {
+                    if (enemy.respawnType === 'never') {
+                        if (!respawnData.permanent[roomId]) respawnData.permanent[roomId] = [];
+                        respawnData.permanent[roomId].push(enemy.id);
+                    } else if (enemy.respawnType === 'bench') {
+                        if (!respawnData.bench[roomId]) respawnData.bench[roomId] = [];
+                        respawnData.bench[roomId].push(enemy.id);
+                    }
+                }
                 enemies.splice(i, 1);
+                removed = true;
             }
         }
         this.attackCooldown = 30;
@@ -334,6 +356,7 @@ export default class Player {
         this.slashTimer = this.slashDuration;
         this.vx = 0;
         this.stopRunning();
+        return removed;
     }
 
     setPosition(x, y) {

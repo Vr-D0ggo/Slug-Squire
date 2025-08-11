@@ -1,5 +1,5 @@
 export class Enemy {
-    constructor(x, y, width, height, color) {
+    constructor(x, y, width, height, color, id, respawnType = 'room') {
         this.x = x;
         this.y = y;
         this.width = width;
@@ -10,6 +10,8 @@ export class Enemy {
         this.onGround = false;
         this.hasDealtDamage = false;
 
+        this.id = id;
+        this.respawnType = respawnType;
     }
 
     update(room) {
@@ -38,12 +40,12 @@ export class Enemy {
 }
 
 export class LittleBrownSkink extends Enemy {
-    constructor(x, y) {
+    constructor(x, y, id, respawnType = 'room') {
         // Enemy size relative to the unevolved player
         const width = 40 * 2.5;      // Slightly shorter than before
         const height = 20 * 0.5;     // Half the player height
 
-        super(x, y, width, height, '#ff69b4');
+        super(x, y, width, height, '#ff69b4', id, respawnType);
         this.damage = 40;
 
         this.baseSpeed = 1.5;
