@@ -52,6 +52,7 @@ let currentRoom = null;
 const ui = new InventoryUI(null);
 
 let deathSequence = null; // { phase: 'fall'|'fadeout'|'fadein', timer: number, alpha: number }
+let animationFrameId = null;
 
 // Day/Night cycle (15 min each)
 const DAY_DURATION = 15 * 60 * 1000;
@@ -278,7 +279,7 @@ function gameLoop() {
         }
     }
     
-    requestAnimationFrame(gameLoop);
+    animationFrameId = requestAnimationFrame(gameLoop);
 }
 
 function handleInteraction() {
@@ -418,7 +419,6 @@ function startGame(slotIndex) {
         player.lastNest = { roomId: currentRoom.id, x: player.x, groundY: player.y + player.height + player.getLegHeight() };
         currentRoom.checkCollisions(player);
     }
-    gameLoop();
 }
 
 window.addEventListener('resize', resizeCanvas);
@@ -521,3 +521,6 @@ brightnessSlider.addEventListener('input', () => {
 });
 
 window.addEventListener('beforeunload', saveGame);
+
+// start the animation loop once
+gameLoop();
