@@ -5,11 +5,13 @@ export default class InputHandler {
         this.bindings = {
             left: 'a',
             right: 'd',
-            jump: 'w',
+            jump: 'i',
             inventory: 'e',
-            interact: 'f',
-            attack: ' ',
-            run: 'shift'
+            interact: 'o',
+            attack: 'u',
+            run: 'shift',
+            lookUp: 'w',
+            lookDown: 's'
         };
         this.awaitingAction = null;
         this.onRebindComplete = null;
@@ -59,11 +61,13 @@ export default class InputHandler {
         this.bindings = {
             left: 'a',
             right: 'd',
-            jump: 'w',
+            jump: 'i',
             inventory: 'e',
-            interact: 'f',
-            attack: ' ',
-            run: 'shift'
+            interact: 'o',
+            attack: 'u',
+            run: 'shift',
+            lookUp: 'w',
+            lookDown: 's'
         };
         if (this.onRebindComplete) this.onRebindComplete();
     }
