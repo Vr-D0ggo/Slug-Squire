@@ -230,7 +230,7 @@ function gameLoop() {
         ctx.translate(-camera.x, -camera.y);
         currentRoom.draw(ctx);
         player.draw(ctx);
-        drawInteractionPrompt(ctx, player, currentRoom);
+        drawInteractionPrompt(ctx, player, currentRoom, input.bindings.interact);
         ctx.restore();
 
         if (!isDay) {
@@ -412,14 +412,7 @@ canvas.addEventListener('mousedown', (e) => {
     }
 });
 
-// Track mouse position for aiming
-canvas.addEventListener('mousemove', (e) => {
-    const rect = canvas.getBoundingClientRect();
-    if (player) {
-        player.mouse.x = e.clientX - rect.left + camera.x;
-        player.mouse.y = e.clientY - rect.top + camera.y;
-    }
-});
+// Mouse tracking removed: aiming no longer uses cursor
 
 function startGame(slotIndex) {
     currentSlot = slotIndex;

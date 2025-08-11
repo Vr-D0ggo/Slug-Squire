@@ -135,7 +135,7 @@ export default class Room {
                     enemy.x = player.x + player.width + enemy.headWidth;
                 }
                 enemy.vx = 0;
-                player.health -= enemy.damage;
+                player.applyDamage(enemy.damage, enemy.damageType);
                 if (player.stopRunning) player.stopRunning();
             }
 
@@ -149,7 +149,7 @@ export default class Room {
                     player.y + player.height > m.y
                 ) {
                     isColliding = true;
-                    player.health -= enemy.damage;
+                    player.applyDamage(enemy.damage, enemy.damageType);
                     if (player.stopRunning) player.stopRunning();
                     enemy.hasDealtDamage = true;
                     if (enemy.onDealDamage) enemy.onDealDamage(player);
@@ -182,7 +182,7 @@ export default class Room {
                     player.y = enemy.y + enemy.height;
                 } else if (!enemy.sleeping && playerPrevRight <= enemyPrevLeft && player.x + player.width > enemy.x) {
                     if (!enemy.hasDealtDamage) {
-                        player.health -= enemy.damage;
+                        player.applyDamage(enemy.damage, enemy.damageType);
                         if (player.stopRunning) player.stopRunning();
                         enemy.hasDealtDamage = true;
                         if (enemy.onDealDamage) enemy.onDealDamage(player);
@@ -198,7 +198,7 @@ export default class Room {
                     }
                 } else if (!enemy.sleeping && playerPrevLeft >= enemyPrevRight && player.x < enemy.x + enemy.width) {
                     if (!enemy.hasDealtDamage) {
-                        player.health -= enemy.damage;
+                        player.applyDamage(enemy.damage, enemy.damageType);
                         if (player.stopRunning) player.stopRunning();
                         enemy.hasDealtDamage = true;
                         if (enemy.onDealDamage) enemy.onDealDamage(player);

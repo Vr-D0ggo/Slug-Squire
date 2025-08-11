@@ -37,11 +37,24 @@ export const items = {
             tipColor: '#ffff00',
             image: 'Qtip.svg',
             stats: { Weight: 28, Sharpness: 1 },
+            damage: 5,
+            damageType: 'bludgeoning',
             description: 'You probably should not touch the yellow end.'
         }
     },
     armor: {
-        // future armor items can go here
+        basicShell: {
+            id: 'basic_shell',
+            name: 'Basic Shell',
+            type: 'armor',
+            width: 30,
+            height: 20,
+            color: '#888888',
+            stats: { Weight: 20 },
+            strengths: { bludgeoning: 0.2 },
+            weaknesses: { slashing: 0.1 },
+            description: 'Offers modest protection.'
+        }
     }
 };
 

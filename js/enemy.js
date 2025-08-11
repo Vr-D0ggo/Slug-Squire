@@ -12,6 +12,11 @@ export class Enemy {
 
         this.id = id;
         this.respawnType = respawnType;
+
+        this.health = 10;
+        this.strengths = {};
+        this.weaknesses = {};
+        this.damageType = 'physical';
     }
 
     update(room) {
@@ -47,6 +52,8 @@ export class LittleBrownSkink extends Enemy {
 
         super(x, y, width, height, '#ff69b4', id, respawnType);
         this.damage = 40;
+        this.damageType = 'biting';
+        this.weaknesses = { slashing: 0.5, biting: 0.5 };
 
         this.baseSpeed = 1.5;
         this.speed = this.baseSpeed;

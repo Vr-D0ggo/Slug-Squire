@@ -66,8 +66,9 @@ export default class Player {
 
         // Direction the player is facing; used for sprite flipping
         this.facingRight = true;
+        this.lookDirection = 'forward';
 
-        // Track the mouse position in world coordinates for weapon aiming
+        // Mouse tracking is no longer used for aiming but kept for compatibility
         this.mouse = { x: 0, y: 0 };
     }
 
@@ -275,12 +276,13 @@ export default class Player {
             const handX = drawX + this.width + Math.cos(armAngle) * armLength;
             const handY = drawY + this.height * 0.6 + Math.sin(armAngle) * armLength;
 
-            // Angle from hand to mouse
-            let dx = this.mouse.x - handWorldX;
-            let dy = this.mouse.y - handWorldY;
-            if (!this.facingRight) dx = -dx;
-            let angle = Math.atan2(dy, dx);
-
+            // Base weapon angle determined by facing and look direction
+            let angle = 0;
+            if (this.lookDirection === 'up') {
+                angle = -Math.PI / 2;
+            } else if (this.lookDirection === 'down') {
+                angle = Math.PI / 2;
+            }
             if (this.slashTimer > 0) {
                 const progress = 1 - this.slashTimer / this.slashDuration;
                 angle += progress * Math.PI;
@@ -347,6 +349,17 @@ export default class Player {
         }
         this.x += this.vx;
 
+        if (this.vx > 0) this.facingRight = true;
+        else if (this.vx < 0) this.facingRight = false;
+
+        if (input.isActionPressed('lookUp')) {
+            this.lookDirection = 'up';
+        } else if (input.isActionPressed('lookDown')) {
+            this.lookDirection = 'down';
+        } else {
+            this.lookDirection = 'forward';
+        }
+
         const jumpKeysArePressed = input.isActionPressed('jump');
         const jumpPower = this.getCurrentJumpPower();
 
@@ -367,13 +380,26 @@ export default class Player {
         if (this.x < leftBoundary) this.x = leftBoundary;
         if (this.x > rightBoundary) this.x = rightBoundary;
 
-        // Face toward the mouse cursor
-        this.facingRight = this.mouse.x >= this.x + this.width / 2;
+        // Facing is determined by last horizontal movement
     }
 
     stopRunning() {
         this.isRunning = false;
         this.walkTime = 0;
+    }
+
+    applyDamage(amount, type) {
+        let modifier = 1;
+        const armor = this.equipped.armor;
+        if (armor) {
+            if (armor.weaknesses && armor.weaknesses[type]) {
+                modifier += armor.weaknesses[type];
+            }
+            if (armor.strengths && armor.strengths[type]) {
+                modifier -= armor.strengths[type];
+            }
+        }
+        this.health -= amount * modifier;
     }
 
     attack(enemies, respawnData, roomId) {
@@ -386,17 +412,29 @@ export default class Player {
             const dy = (this.y + this.height / 2) - (enemy.y + enemy.height / 2);
             const distance = Math.sqrt(dx * dx + dy * dy);
             if (distance < range) {
-                if (respawnData && roomId !== undefined) {
-                    if (enemy.respawnType === 'never') {
-                        if (!respawnData.permanent[roomId]) respawnData.permanent[roomId] = [];
-                        respawnData.permanent[roomId].push(enemy.id);
-                    } else if (enemy.respawnType === 'bench') {
-                        if (!respawnData.bench[roomId]) respawnData.bench[roomId] = [];
-                        respawnData.bench[roomId].push(enemy.id);
-                    }
+                const weapon = this.equipped.weapon;
+                let dmg = weapon.damage || 0;
+                const type = weapon.damageType || 'slashing';
+                if (enemy.weaknesses && enemy.weaknesses[type]) {
+                    dmg *= 1 + enemy.weaknesses[type];
                 }
-                enemies.splice(i, 1);
-                removed = true;
+                if (enemy.strengths && enemy.strengths[type]) {
+                    dmg *= 1 - enemy.strengths[type];
+                }
+                enemy.health -= dmg;
+                if (enemy.health <= 0) {
+                    if (respawnData && roomId !== undefined) {
+                        if (enemy.respawnType === 'never') {
+                            if (!respawnData.permanent[roomId]) respawnData.permanent[roomId] = [];
+                            respawnData.permanent[roomId].push(enemy.id);
+                        } else if (enemy.respawnType === 'bench') {
+                            if (!respawnData.bench[roomId]) respawnData.bench[roomId] = [];
+                            respawnData.bench[roomId].push(enemy.id);
+                        }
+                    }
+                    enemies.splice(i, 1);
+                    removed = true;
+                }
             }
         }
         this.attackCooldown = 30;

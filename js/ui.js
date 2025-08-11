@@ -329,7 +329,7 @@ export class InventoryUI {
 /**
  * A separate function for drawing the in-game interaction prompt.
  */
-export function drawInteractionPrompt(ctx, player, room) {
+export function drawInteractionPrompt(ctx, player, room, interactKey = 'F') {
     const interactionRange = 75;
     let promptDrawn = false; // Prevents multiple prompts from drawing over each other
 
@@ -343,7 +343,7 @@ export function drawInteractionPrompt(ctx, player, room) {
             ctx.fillStyle = 'white';
             ctx.font = '16px sans-serif';
             ctx.textAlign = 'center';
-            ctx.fillText("Press F to Rest", player.x + player.width / 2, player.y - 20);
+            ctx.fillText(`Press ${interactKey.toUpperCase()} to Rest`, player.x + player.width / 2, player.y - 20);
             promptDrawn = true;
         }
     });
@@ -358,7 +358,7 @@ export function drawInteractionPrompt(ctx, player, room) {
             ctx.fillStyle = 'white';
             ctx.font = '16px sans-serif';
             ctx.textAlign = 'center';
-            ctx.fillText("Press F to Interact", player.x + player.width / 2, player.y - 20);
+            ctx.fillText(`Press ${interactKey.toUpperCase()} to Interact`, player.x + player.width / 2, player.y - 20);
             promptDrawn = true;
         }
     });
