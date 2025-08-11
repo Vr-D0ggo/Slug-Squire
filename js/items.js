@@ -23,6 +23,9 @@ export const items = {
             description: 'They wobble, but they walk.'
         }
     },
+    wings: {
+        // future wing items can go here
+    },
     swords: {
         usedQtip: {
             id: 'used_q_tip',

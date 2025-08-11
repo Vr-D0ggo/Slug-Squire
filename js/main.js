@@ -113,7 +113,8 @@ function loadSave(slot) {
     const slots = JSON.parse(localStorage.getItem('saveSlots') || '[]');
     return slots[slot] || {
         inventory: [],
-        equipped: {},
+        equipped: { arms: null, legs: null, weapon: null, wings: null },
+        isEvolved: false,
         stats: { items: 0, bosses: 0, money: 0 },
         lastNest: null,
         respawnData: { bench: {}, permanent: {} }
@@ -128,8 +129,10 @@ function saveGame() {
         equipped: {
             arms: player.equipped.arms ? player.equipped.arms.id : null,
             legs: player.equipped.legs ? player.equipped.legs.id : null,
-            weapon: player.equipped.weapon ? player.equipped.weapon.id : null
+            weapon: player.equipped.weapon ? player.equipped.weapon.id : null,
+            wings: player.equipped.wings ? player.equipped.wings.id : null
         },
+        isEvolved: player.isEvolved,
         stats: {
             items: player.itemsCollected,
             bosses: player.bossesDefeated,
@@ -386,7 +389,7 @@ window.addEventListener('keyup', (e) => {
         if (gameState === 'PLAYING') {
             // When opening inventory away from a nest, clear staging
             if (!player.atNest) {
-                player.stagedEquipment = { arms: null, legs: null, weapon: null };
+                player.stagedEquipment = { arms: null, legs: null, weapon: null, wings: null };
             }
             gameState = 'INVENTORY';
         } else if (gameState === 'INVENTORY') {
@@ -398,23 +401,10 @@ window.addEventListener('keyup', (e) => {
     }
 });
 
-let mouseDown = false;
 canvas.addEventListener('mousedown', (e) => {
     if (gameState !== 'INVENTORY') return;
     const rect = canvas.getBoundingClientRect();
-    ui.handleMouseDown(e.clientX - rect.left, e.clientY - rect.top);
-    mouseDown = true;
-});
-canvas.addEventListener('mousemove', (e) => {
-    if (gameState !== 'INVENTORY' || !mouseDown) return;
-    const rect = canvas.getBoundingClientRect();
-    ui.handleMouseMove(e.clientX - rect.left, e.clientY - rect.top);
-});
-canvas.addEventListener('mouseup', (e) => {
-    if (gameState !== 'INVENTORY') return;
-    const rect = canvas.getBoundingClientRect();
-    const shedClicked = ui.handleMouseUp(e.clientX - rect.left, e.clientY - rect.top, canvas.width, canvas.height);
-    mouseDown = false;
+    const shedClicked = ui.handleClick(e.clientX - rect.left, e.clientY - rect.top, canvas.width, canvas.height);
     if (shedClicked) {
         gameState = 'PLAYING';
         saveGame();
@@ -439,8 +429,12 @@ function startGame(slotIndex) {
     player.equipped = {
         arms: data.equipped.arms ? getItemById(data.equipped.arms) : null,
         legs: data.equipped.legs ? getItemById(data.equipped.legs) : null,
-        weapon: data.equipped.weapon ? getItemById(data.equipped.weapon) : null
+        weapon: data.equipped.weapon ? getItemById(data.equipped.weapon) : null,
+        wings: data.equipped.wings ? getItemById(data.equipped.wings) : null
     };
+    if (data.isEvolved || player.equipped.arms || player.equipped.legs || player.equipped.weapon || player.equipped.wings) {
+        player.evolve();
+    }
     gameState = 'PLAYING';
     const nest = data.lastNest;
     if (nest) {

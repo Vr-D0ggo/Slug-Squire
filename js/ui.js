@@ -10,9 +10,6 @@ export class InventoryUI {
         this.maxPages = 2; // Page 0: Bug Parts, Page 1: Coming Soon
         this.popupItem = null; // When an item is clicked, it's stored here to draw the popup
 
-        this.draggingItem = null;
-        this.dragPos = { x: 0, y: 0 };
-        this.isDragging = false;
         this.itemRects = [];
         this.slotRects = {};
     }
@@ -96,26 +93,33 @@ export class InventoryUI {
         this.player.draw(ctx, previewX, previewY, true);
 
         const slotSize = 60;
-        // Place equipment slots inside the preview box around the caricature
+        // Place equipment slots around the preview similar to Fly Knight
         this.slotRects = {
             arms: {
                 type: 'arms',
                 x: previewBoxX + 10,
-                y: previewBoxY + 10,
+                y: previewBoxY + (previewBoxHeight - slotSize) / 2,
                 width: slotSize,
                 height: slotSize
             },
             weapon: {
                 type: 'weapon',
-                x: previewBoxX + 20 + slotSize,
-                y: previewBoxY + 10,
+                x: previewBoxX + previewBoxWidth - slotSize - 10,
+                y: previewBoxY + (previewBoxHeight - slotSize) / 2,
                 width: slotSize,
                 height: slotSize
             },
             legs: {
                 type: 'legs',
-                x: previewBoxX + previewBoxWidth - slotSize - 10,
+                x: previewBoxX + (previewBoxWidth - slotSize) / 2,
                 y: previewBoxY + previewBoxHeight - slotSize - 10,
+                width: slotSize,
+                height: slotSize
+            },
+            wings: {
+                type: 'wings',
+                x: previewBoxX + (previewBoxWidth - slotSize) / 2,
+                y: previewBoxY + 10,
                 width: slotSize,
                 height: slotSize
             }
@@ -132,9 +136,6 @@ export class InventoryUI {
             }
         });
 
-        if (this.draggingItem) {
-            this.drawItemIcon(ctx, this.draggingItem, this.dragPos.x, this.dragPos.y, 40);
-        }
 
         // --- Shed Exoskeleton Button ---
         this.shedButtonRect = { x: previewBoxX, y: previewBoxY + previewBoxHeight + 20, width: previewBoxWidth, height: 50 };
@@ -250,6 +251,7 @@ export class InventoryUI {
         if (item.type === 'arms') text = 'A';
         else if (item.type === 'legs') text = 'L';
         else if (item.type === 'weapon') text = 'S';
+        else if (item.type === 'wings') text = 'W';
         ctx.fillText(text, centerX, centerY);
     }
 
@@ -301,42 +303,6 @@ export class InventoryUI {
         return x > rect.x && x < rect.x + rect.width && y > rect.y && y < rect.y + rect.height;
     }
 
-    handleMouseDown(x, y) {
-        this.isDragging = false;
-        for (const itemRect of this.itemRects) {
-            if (this.isClickInside(x, y, itemRect.rect)) {
-                this.draggingItem = itemRect.item;
-                this.dragPos = { x, y };
-                return;
-            }
-        }
-        this.draggingItem = null;
-    }
-
-    handleMouseMove(x, y) {
-        if (this.draggingItem) {
-            this.isDragging = true;
-            this.dragPos = { x, y };
-        }
-    }
-
-    handleMouseUp(x, y, canvasWidth, canvasHeight) {
-        if (this.draggingItem && this.isDragging) {
-            for (const slot of Object.values(this.slotRects)) {
-                if (slot.type === this.draggingItem.type && this.isClickInside(x, y, slot)) {
-                    this.player.stageItem(this.draggingItem);
-                    break;
-                }
-            }
-            this.draggingItem = null;
-            this.isDragging = false;
-            return false;
-        }
-        const result = this.handleClick(x, y, canvasWidth, canvasHeight);
-        this.draggingItem = null;
-        this.isDragging = false;
-        return result;
-    }
 }
 
 /**

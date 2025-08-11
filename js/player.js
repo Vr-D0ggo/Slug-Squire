@@ -18,8 +18,8 @@ export default class Player {
         this.lastNest = null; // Last visited nest for respawn
 
         // --- UPDATED: Equipment System ---
-        this.equipped = { arms: null, legs: null, weapon: null };
-        this.stagedEquipment = { arms: null, legs: null, weapon: null }; // Pending changes
+        this.equipped = { arms: null, legs: null, weapon: null, wings: null };
+        this.stagedEquipment = { arms: null, legs: null, weapon: null, wings: null }; // Pending changes
 
         // --- NEW: Unevolved slug sprites ---
         this.sprites = {
@@ -126,6 +126,7 @@ export default class Player {
         if (this.equipped.arms) total += this.equipped.arms.stats.Weight;
         if (this.equipped.legs) total += this.equipped.legs.stats.Weight;
         if (this.equipped.weapon) total += this.equipped.weapon.stats.Weight;
+        if (this.equipped.wings) total += this.equipped.wings.stats.Weight;
         return total;
     }
 
@@ -205,6 +206,20 @@ export default class Player {
                 context.stroke();
                 context.restore();
             });
+        }
+
+        if (this.equipped.wings) {
+            context.fillStyle = '#999';
+            context.beginPath();
+            context.moveTo(drawX - 10, drawY + this.height / 2);
+            context.lineTo(drawX, drawY);
+            context.lineTo(drawX, drawY + this.height);
+            context.fill();
+            context.beginPath();
+            context.moveTo(drawX + this.width + 10, drawY + this.height / 2);
+            context.lineTo(drawX + this.width, drawY);
+            context.lineTo(drawX + this.width, drawY + this.height);
+            context.fill();
         }
 
         if (!this.isEvolved) {
