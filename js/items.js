@@ -35,7 +35,7 @@ export const items = {
             height: 10,
             color: '#ffffff',
             tipColor: '#ffff00',
-            image: 'Qtip.svg',
+            image: 'Q-tip.png',
             stats: { Weight: 28, Sharpness: 1 },
             description: 'You probably should not touch the yellow end.'
         }
