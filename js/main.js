@@ -5,12 +5,16 @@ import InputHandler from './input.js';
 import Room from './room.js';
 import { levelData } from './levels.js';
 import { InventoryUI, drawInteractionPrompt } from './ui.js';
+import { getItemById } from './items.js';
 
 // --- SETUP ---
 const startScreen = document.getElementById('start-screen');
 const startButton = document.getElementById('start-button');
 const rebindButton = document.getElementById('rebind-button');
 const rebindScreen = document.getElementById('rebind-screen');
+const saveScreen = document.getElementById('save-screen');
+const slotButtons = Array.from(document.querySelectorAll('.save-slot'));
+const saveBackButton = document.getElementById('save-back-button');
 const leftKeyBtn = document.getElementById('left-key-btn');
 const rightKeyBtn = document.getElementById('right-key-btn');
 const jumpKeyBtn = document.getElementById('jump-key-btn');
@@ -28,7 +32,6 @@ const ctx = canvas.getContext('2d');
 const pauseMenu = document.getElementById('pause-menu');
 const resumeButton = document.getElementById('resume-button');
 const settingsButton = document.getElementById('settings-button');
-const keybindsButton = document.getElementById('keybinds-button');
 const exitButton = document.getElementById('exit-button');
 const settingsMenu = document.getElementById('settings-menu');
 const tabKeybinds = document.getElementById('tab-keybinds');
@@ -38,6 +41,8 @@ const settingsKeybinds = document.getElementById('settings-keybinds');
 const settingsVisuals = document.getElementById('settings-visuals');
 const settingsSfx = document.getElementById('settings-sfx');
 const brightnessSlider = document.getElementById('brightness-slider');
+
+let currentSlot = null;
 
 let gameState = 'START';
 let previousState = 'START';
@@ -90,6 +95,45 @@ function loadRoom(roomNumber) {
     player.setPosition(currentRoom.playerStart.x, currentRoom.playerStart.y);
 }
 
+function loadSave(slot) {
+    const slots = JSON.parse(localStorage.getItem('saveSlots') || '[]');
+    return slots[slot] || { inventory: [], equipped: {}, stats: { items: 0, bosses: 0, money: 0 }, lastNest: null };
+}
+
+function saveGame() {
+    if (currentSlot === null || !player) return;
+    const slots = JSON.parse(localStorage.getItem('saveSlots') || '[]');
+    slots[currentSlot] = {
+        inventory: player.inventory.map(i => i.id),
+        equipped: {
+            arms: player.equipped.arms ? player.equipped.arms.id : null,
+            legs: player.equipped.legs ? player.equipped.legs.id : null,
+            weapon: player.equipped.weapon ? player.equipped.weapon.id : null
+        },
+        stats: {
+            items: player.itemsCollected,
+            bosses: player.bossesDefeated,
+            money: player.money
+        },
+        lastNest: player.lastNest
+    };
+    localStorage.setItem('saveSlots', JSON.stringify(slots));
+}
+
+function updateSlotButtons() {
+    const slots = JSON.parse(localStorage.getItem('saveSlots') || '[]');
+    slotButtons.forEach((btn, i) => {
+        const data = slots[i];
+        if (data) {
+            const stats = data.stats || {};
+            btn.textContent = 'Slot ' + (i + 1) + ' - Items: ' + (stats.items || 0) +
+                ' Bosses: ' + (stats.bosses || 0) + ' Money: ' + (stats.money || 0);
+        } else {
+            btn.textContent = 'Slot ' + (i + 1) + ' - Empty';
+        }
+    });
+}
+
 function showSettingsTab(tab) {
     [settingsKeybinds, settingsVisuals, settingsSfx].forEach(s => s.classList.add('hidden'));
     [tabKeybinds, tabVisuals, tabSfx].forEach(b => b.classList.remove('active'));
@@ -113,6 +157,7 @@ function openSettings() {
     settingsMenu.classList.remove('hidden');
     pauseMenu.classList.add('hidden');
     startScreen.classList.add('hidden');
+    rebindScreen.classList.remove('hidden');
     showSettingsTab('keybinds');
     gameState = 'SETTINGS';
 }
@@ -252,7 +297,7 @@ function handleInteraction() {
                 x: player.x,
                 groundY: player.y + player.height + player.getLegHeight()
             };
-            localStorage.setItem('lastNest', JSON.stringify(player.lastNest));
+            saveGame();
             // Set staged equipment to currently equipped gear when opening menu at nest
             Object.assign(player.stagedEquipment, player.equipped);
             gameState = 'INVENTORY';
@@ -268,6 +313,7 @@ function handleInteraction() {
         if (distance < 75) {
             player.collectItem(item);
             currentRoom.interactables.splice(i, 1);
+            saveGame();
             return;
         }
     }
@@ -336,50 +382,62 @@ canvas.addEventListener('mouseup', (e) => {
     mouseDown = false;
     if (shedClicked) {
         gameState = 'PLAYING';
+        saveGame();
     }
 });
 
-function startGame() {
+function startGame(slotIndex) {
+    currentSlot = slotIndex;
+    saveScreen.classList.add('hidden');
     startScreen.classList.add('hidden');
-    rebindScreen.classList.add('hidden');
     pauseMenu.classList.add('hidden');
     settingsMenu.classList.add('hidden');
     canvas.style.display = 'block';
     resizeCanvas();
     canvas.focus();
+    const data = loadSave(slotIndex);
+    player.itemsCollected = data.stats.items || 0;
+    player.bossesDefeated = data.stats.bosses || 0;
+    player.money = data.stats.money || 0;
+    player.inventory = (data.inventory || []).map(id => getItemById(id)).filter(Boolean);
+    player.equipped = {
+        arms: data.equipped.arms ? getItemById(data.equipped.arms) : null,
+        legs: data.equipped.legs ? getItemById(data.equipped.legs) : null,
+        weapon: data.equipped.weapon ? getItemById(data.equipped.weapon) : null
+    };
     gameState = 'PLAYING';
-    const savedNest = localStorage.getItem('lastNest');
-    if (savedNest) {
-        try {
-            const nest = JSON.parse(savedNest);
-            loadRoom(nest.roomId);
-            const spawnY = nest.groundY - player.height - player.getLegHeight();
-            player.setPosition(nest.x, spawnY);
-            player.lastNest = nest;
-            currentRoom.checkCollisions(player);
-        } catch (e) {
-            loadRoom(1);
-            player.lastNest = {
-                roomId: currentRoom.id,
-                x: player.x,
-                groundY: player.y + player.height + player.getLegHeight()
-            };
-            currentRoom.checkCollisions(player);
-        }
+    const nest = data.lastNest;
+    if (nest) {
+        loadRoom(nest.roomId);
+        const spawnY = nest.groundY - player.height - player.getLegHeight();
+        player.setPosition(nest.x, spawnY);
+        player.lastNest = nest;
+        currentRoom.checkCollisions(player);
     } else {
         loadRoom(1);
-        player.lastNest = {
-            roomId: currentRoom.id,
-            x: player.x,
-            groundY: player.y + player.height + player.getLegHeight()
-        };
+        player.lastNest = { roomId: currentRoom.id, x: player.x, groundY: player.y + player.height + player.getLegHeight() };
         currentRoom.checkCollisions(player);
     }
     gameLoop();
 }
 
 window.addEventListener('resize', resizeCanvas);
-startButton.addEventListener('click', startGame);
+
+startButton.addEventListener('click', () => {
+    startScreen.classList.add('hidden');
+    updateSlotButtons();
+    saveScreen.classList.remove('hidden');
+});
+saveBackButton.addEventListener('click', () => {
+    saveScreen.classList.add('hidden');
+    startScreen.classList.remove('hidden');
+});
+slotButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+        const slot = parseInt(btn.dataset.slot);
+        startGame(slot);
+    });
+});
 
 function updateBindDisplay() {
     leftKeyBtn.textContent = input.bindings.left.toUpperCase();
@@ -445,13 +503,8 @@ settingsButton.addEventListener('click', () => {
     updateBindDisplay();
     openSettings();
 });
-keybindsButton.addEventListener('click', () => {
-    updateBindDisplay();
-    openSettings();
-});
-
 exitButton.addEventListener('click', () => {
-    localStorage.setItem('lastNest', JSON.stringify(player.lastNest));
+    saveGame();
     pauseMenu.classList.add('hidden');
     canvas.style.display = 'none';
     startScreen.classList.remove('hidden');
@@ -466,3 +519,5 @@ brightnessSlider.addEventListener('input', () => {
     const val = brightnessSlider.value / 100;
     canvas.style.filter = `brightness(${val})`;
 });
+
+window.addEventListener('beforeunload', saveGame);

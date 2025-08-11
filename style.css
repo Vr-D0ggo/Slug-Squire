@@ -90,6 +90,31 @@ html, body {
     padding-top: 20px;
 }
 
+#save-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #282c34;
+    color: #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+#save-screen button {
+    margin: 10px;
+    padding: 15px 30px;
+    background: transparent;
+    border: 2px solid #aaa;
+    color: #e0e0e0;
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    cursor: pointer;
+}
+
 .rebind-header {
     display: flex;
     gap: 20px;
