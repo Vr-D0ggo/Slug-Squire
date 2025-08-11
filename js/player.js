@@ -66,6 +66,9 @@ export default class Player {
 
         // Direction the player is facing; used for sprite flipping
         this.facingRight = true;
+
+        // Track the mouse position in world coordinates for weapon aiming
+        this.mouse = { x: 0, y: 0 };
     }
 
     getLegHeight() {
@@ -263,12 +266,30 @@ export default class Player {
 
         if (this.equipped.weapon) {
             const weapon = this.equipped.weapon;
-            const swordWidth = 4;
-            const swordHeight = 25;
+            const defaultWidth = weapon.width;
+            const defaultHeight = weapon.height;
+
+            // Hand position in both world and draw coordinates
+            const handWorldX = this.x + this.width + Math.cos(armAngle) * armLength;
+            const handWorldY = this.y + this.height * 0.6 + Math.sin(armAngle) * armLength;
             const handX = drawX + this.width + Math.cos(armAngle) * armLength;
             const handY = drawY + this.height * 0.6 + Math.sin(armAngle) * armLength;
+
+            // Angle from hand to mouse
+            let dx = this.mouse.x - handWorldX;
+            let dy = this.mouse.y - handWorldY;
+            if (!this.facingRight) dx = -dx;
+            let angle = Math.atan2(dy, dx);
+
+            if (this.slashTimer > 0) {
+                const progress = 1 - this.slashTimer / this.slashDuration;
+                angle += progress * Math.PI;
+            }
+
             context.save();
             context.translate(handX, handY);
+            context.rotate(angle);
+
             let img = null;
             if (weapon.image) {
                 img = this.itemSprites[weapon.id];
@@ -278,24 +299,13 @@ export default class Player {
                     this.itemSprites[weapon.id] = img;
                 }
             }
-            if (this.slashTimer > 0) {
-                const progress = 1 - this.slashTimer / this.slashDuration;
-                const angle = progress * Math.PI;
-                context.rotate(angle);
-                if (img && img.complete) {
-                    context.drawImage(img, 0, -weapon.height / 2, weapon.width, weapon.height);
-                } else {
-                    context.fillStyle = '#bbb';
-                    context.fillRect(0, -swordWidth / 2, swordHeight, swordWidth);
-                }
+            const drawW = img && img.complete ? img.width : defaultWidth;
+            const drawH = img && img.complete ? img.height : defaultHeight;
+            if (img && img.complete) {
+                context.drawImage(img, 0, -drawH / 2, drawW, drawH);
             } else {
-                if (img && img.complete) {
-                    context.rotate(-Math.PI / 2);
-                    context.drawImage(img, -weapon.height / 2, -weapon.width, weapon.height, weapon.width);
-                } else {
-                    context.fillStyle = '#bbb';
-                    context.fillRect(-swordWidth / 2, -swordHeight, swordWidth, swordHeight);
-                }
+                context.fillStyle = '#bbb';
+                context.fillRect(0, -drawH / 2, drawW, drawH);
             }
             context.restore();
         }
@@ -318,10 +328,8 @@ export default class Player {
             const currentSpeed = this.getCurrentSpeed();
             if (input.isActionPressed('right')) {
                 this.vx = currentSpeed;
-                this.facingRight = true;
             } else if (input.isActionPressed('left')) {
                 this.vx = -currentSpeed;
-                this.facingRight = false;
             } else {
                 // Stop instantly when no movement keys are pressed
                 this.vx = 0;
@@ -358,6 +366,9 @@ export default class Player {
         const rightBoundary = roomBoundaries.width - this.width - 10;
         if (this.x < leftBoundary) this.x = leftBoundary;
         if (this.x > rightBoundary) this.x = rightBoundary;
+
+        // Face toward the mouse cursor
+        this.facingRight = this.mouse.x >= this.x + this.width / 2;
     }
 
     stopRunning() {
