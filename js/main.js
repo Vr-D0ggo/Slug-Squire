@@ -412,6 +412,15 @@ canvas.addEventListener('mousedown', (e) => {
     }
 });
 
+// Track mouse position for aiming
+canvas.addEventListener('mousemove', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    if (player) {
+        player.mouse.x = e.clientX - rect.left + camera.x;
+        player.mouse.y = e.clientY - rect.top + camera.y;
+    }
+});
+
 function startGame(slotIndex) {
     currentSlot = slotIndex;
     saveScreen.classList.add('hidden');
