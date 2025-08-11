@@ -7,6 +7,9 @@ export default class Player {
         
         this.inventory = [];
         this.isEvolved = false;
+        this.itemsCollected = 0;
+        this.bossesDefeated = 0;
+        this.money = 0;
 
         // --- NEW: Health & State ---
         this.maxHealth = 100;
@@ -136,7 +139,8 @@ export default class Player {
 
     collectItem(item) {
         if (!this.inventory.find(i => i.id === item.id)) {
-        this.inventory.push(item);
+            this.inventory.push(item);
+            this.itemsCollected++;
         }
     }
 
