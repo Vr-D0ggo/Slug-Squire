@@ -15,10 +15,17 @@
         </div>
         <div id="save-screen" class="hidden">
             <h2>Select Save Slot</h2>
-            <button class="save-slot" data-slot="0">Slot 1 - Empty</button>
-            <button class="save-slot" data-slot="1">Slot 2 - Empty</button>
-            <button class="save-slot" data-slot="2">Slot 3 - Empty</button>
+            <div class="save-row"><button class="save-slot" data-slot="0">Slot 1 - Empty</button><button class="delete-slot" data-slot="0">Delete Save</button></div>
+            <div class="save-row"><button class="save-slot" data-slot="1">Slot 2 - Empty</button><button class="delete-slot" data-slot="1">Delete Save</button></div>
+            <div class="save-row"><button class="save-slot" data-slot="2">Slot 3 - Empty</button><button class="delete-slot" data-slot="2">Delete Save</button></div>
             <button id="save-back-button">Back</button>
+        </div>
+        <div id="delete-confirm" class="hidden">
+            <div class="delete-dialog">
+                <p>Are you sure? This action cannot be undone.</p>
+                <button id="confirm-delete">Delete Save</button>
+                <button id="cancel-delete">Cancel</button>
+            </div>
         </div>
         <div id="pause-menu" class="hidden blur">
             <button id="resume-button">Resume</button>

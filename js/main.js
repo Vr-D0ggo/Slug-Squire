@@ -14,7 +14,11 @@ const rebindButton = document.getElementById('rebind-button');
 const rebindScreen = document.getElementById('rebind-screen');
 const saveScreen = document.getElementById('save-screen');
 const slotButtons = Array.from(document.querySelectorAll('.save-slot'));
+const deleteButtons = Array.from(document.querySelectorAll('.delete-slot'));
 const saveBackButton = document.getElementById('save-back-button');
+const deleteConfirm = document.getElementById('delete-confirm');
+const confirmDeleteBtn = document.getElementById('confirm-delete');
+const cancelDeleteBtn = document.getElementById('cancel-delete');
 const leftKeyBtn = document.getElementById('left-key-btn');
 const rightKeyBtn = document.getElementById('right-key-btn');
 const jumpKeyBtn = document.getElementById('jump-key-btn');
@@ -43,6 +47,7 @@ const settingsSfx = document.getElementById('settings-sfx');
 const brightnessSlider = document.getElementById('brightness-slider');
 
 let currentSlot = null;
+let deleteTarget = null;
 
 let gameState = 'START';
 let previousState = 'START';
@@ -50,6 +55,9 @@ let player = null;
 const input = new InputHandler();
 let currentRoom = null;
 const ui = new InventoryUI(null);
+
+// Track which objects have been removed based on respawn rules
+let respawnData = { bench: {}, permanent: {} };
 
 let deathSequence = null; // { phase: 'fall'|'fadeout'|'fadein', timer: number, alpha: number }
 let animationFrameId = null;
@@ -93,12 +101,23 @@ function loadRoom(roomNumber) {
         return;
     }
     currentRoom = new Room(roomData);
+    const perma = respawnData.permanent[roomNumber] || [];
+    const benchRemoved = respawnData.bench[roomNumber] || [];
+    currentRoom.interactables = currentRoom.interactables.filter(obj => !perma.includes(obj.uid) && !benchRemoved.includes(obj.uid));
+    currentRoom.powerups = currentRoom.powerups.filter(obj => !perma.includes(obj.id) && !benchRemoved.includes(obj.id));
+    currentRoom.enemies = currentRoom.enemies.filter(obj => !perma.includes(obj.id) && !benchRemoved.includes(obj.id));
     player.setPosition(currentRoom.playerStart.x, currentRoom.playerStart.y);
 }
 
 function loadSave(slot) {
     const slots = JSON.parse(localStorage.getItem('saveSlots') || '[]');
-    return slots[slot] || { inventory: [], equipped: {}, stats: { items: 0, bosses: 0, money: 0 }, lastNest: null };
+    return slots[slot] || {
+        inventory: [],
+        equipped: {},
+        stats: { items: 0, bosses: 0, money: 0 },
+        lastNest: null,
+        respawnData: { bench: {}, permanent: {} }
+    };
 }
 
 function saveGame() {
@@ -116,7 +135,8 @@ function saveGame() {
             bosses: player.bossesDefeated,
             money: player.money
         },
-        lastNest: player.lastNest
+        lastNest: player.lastNest,
+        respawnData
     };
     localStorage.setItem('saveSlots', JSON.stringify(slots));
 }
@@ -189,7 +209,7 @@ function gameLoop() {
         // --- Game Logic Updates ---
         player.update(input, { width: currentRoom.width, height: currentRoom.height });
         currentRoom.updateEnemies(player);
-        const targetRoom = currentRoom.checkCollisions(player);
+        const targetRoom = currentRoom.checkCollisions(player, respawnData, saveGame);
 
         if (player.health <= 0 && !deathSequence) {
             player.die();
@@ -257,7 +277,7 @@ function gameLoop() {
                 } else {
                     loadRoom(1);
                 }
-                currentRoom.checkCollisions(player);
+                currentRoom.checkCollisions(player, respawnData, saveGame);
                 player.health = player.maxHealth;
                 player.isDead = false;
                 deathSequence.phase = 'fadein';
@@ -293,11 +313,17 @@ function handleInteraction() {
             console.log("Interacting with nest.");
             player.health = player.maxHealth;
             nest.hasEggs = true;
+            const groundY = player.y + player.height + player.getLegHeight();
             player.lastNest = {
                 roomId: currentRoom.id,
                 x: player.x,
-                groundY: player.y + player.height + player.getLegHeight()
+                groundY
             };
+            // Reset bench-respawned objects and reload room
+            respawnData.bench = {};
+            loadRoom(currentRoom.id);
+            player.setPosition(player.lastNest.x, groundY - player.height - player.getLegHeight());
+            currentRoom.checkCollisions(player, respawnData, saveGame);
             saveGame();
             // Set staged equipment to currently equipped gear when opening menu at nest
             Object.assign(player.stagedEquipment, player.equipped);
@@ -314,6 +340,13 @@ function handleInteraction() {
         if (distance < 75) {
             player.collectItem(item);
             currentRoom.interactables.splice(i, 1);
+            if (item.respawnType === 'never') {
+                if (!respawnData.permanent[currentRoom.id]) respawnData.permanent[currentRoom.id] = [];
+                respawnData.permanent[currentRoom.id].push(item.uid);
+            } else if (item.respawnType === 'bench') {
+                if (!respawnData.bench[currentRoom.id]) respawnData.bench[currentRoom.id] = [];
+                respawnData.bench[currentRoom.id].push(item.uid);
+            }
             saveGame();
             return;
         }
@@ -342,7 +375,8 @@ window.addEventListener('keydown', (e) => {
         canvas.focus();
     }
     if (key.toLowerCase() === input.bindings.attack && gameState === 'PLAYING') {
-        player.attack(currentRoom.enemies);
+        const removed = player.attack(currentRoom.enemies, respawnData, currentRoom.id);
+        if (removed) saveGame();
     }
 });
 
@@ -397,6 +431,7 @@ function startGame(slotIndex) {
     resizeCanvas();
     canvas.focus();
     const data = loadSave(slotIndex);
+    respawnData = data.respawnData || { bench: {}, permanent: {} };
     player.itemsCollected = data.stats.items || 0;
     player.bossesDefeated = data.stats.bosses || 0;
     player.money = data.stats.money || 0;
@@ -413,11 +448,11 @@ function startGame(slotIndex) {
         const spawnY = nest.groundY - player.height - player.getLegHeight();
         player.setPosition(nest.x, spawnY);
         player.lastNest = nest;
-        currentRoom.checkCollisions(player);
+        currentRoom.checkCollisions(player, respawnData, saveGame);
     } else {
         loadRoom(1);
         player.lastNest = { roomId: currentRoom.id, x: player.x, groundY: player.y + player.height + player.getLegHeight() };
-        currentRoom.checkCollisions(player);
+        currentRoom.checkCollisions(player, respawnData, saveGame);
     }
 }
 
@@ -437,6 +472,26 @@ slotButtons.forEach(btn => {
         const slot = parseInt(btn.dataset.slot);
         startGame(slot);
     });
+});
+deleteButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+        deleteTarget = parseInt(btn.dataset.slot);
+        deleteConfirm.classList.remove('hidden');
+    });
+});
+confirmDeleteBtn.addEventListener('click', () => {
+    if (deleteTarget !== null) {
+        const slots = JSON.parse(localStorage.getItem('saveSlots') || '[]');
+        slots[deleteTarget] = null;
+        localStorage.setItem('saveSlots', JSON.stringify(slots));
+        updateSlotButtons();
+    }
+    deleteConfirm.classList.add('hidden');
+    deleteTarget = null;
+});
+cancelDeleteBtn.addEventListener('click', () => {
+    deleteConfirm.classList.add('hidden');
+    deleteTarget = null;
 });
 
 function updateBindDisplay() {

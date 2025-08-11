@@ -17,7 +17,7 @@ export default class Room {
         this.enemies = (roomData.enemies || []).map(e => {
             switch (e.type) {
                 case 'little_brown_skink':
-                    return new LittleBrownSkink(e.x, e.y);
+                    return new LittleBrownSkink(e.x, e.y, e.id, e.respawnType);
                 default:
                     return null;
             }
@@ -240,7 +240,7 @@ export default class Room {
         }
     }
 
-    checkCollisions(player) {
+    checkCollisions(player, respawnData, saveGame) {
         // --- Platform Collisions ---
         this.platforms.forEach(platform => {
             const totalPlayerHeight = player.height + player.getLegHeight();
@@ -284,7 +284,17 @@ export default class Room {
                 if (powerup.type === 'evolution_power') {
                     player.evolve();
                 }
+                if (respawnData) {
+                    if (powerup.respawnType === 'never') {
+                        if (!respawnData.permanent[this.id]) respawnData.permanent[this.id] = [];
+                        respawnData.permanent[this.id].push(powerup.id);
+                    } else if (powerup.respawnType === 'bench') {
+                        if (!respawnData.bench[this.id]) respawnData.bench[this.id] = [];
+                        respawnData.bench[this.id].push(powerup.id);
+                    }
+                }
                 this.powerups.splice(i, 1);
+                if (saveGame) saveGame();
             }
         }
 

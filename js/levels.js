@@ -30,13 +30,13 @@ export const levelData = {
             { x: 0, y: 0, width: 10, height: CANVAS_HEIGHT, color: '#7f8c8d', targetRoom: null },
         ],
         powerups: [
-            { x: 1000, y: 570, width: 50, height: 10, color: '#2ecc71', type: 'evolution_power' }
+            { id: 'power_goop_1', x: 1000, y: 570, width: 50, height: 10, color: '#2ecc71', type: 'evolution_power', respawnType: 'never' }
         ],
         interactables: [
-            { ...items.arms.brokenArms, x: 600, y: 570 },
-            { ...items.legs.brokenLegs, x: 850, y: 570 },
+            { ...items.arms.brokenArms, uid: 'broken_arms_1', respawnType: 'never', x: 600, y: 570 },
+            { ...items.legs.brokenLegs, uid: 'broken_legs_1', respawnType: 'never', x: 850, y: 570 },
             // Sword near the first skink spawn
-            { ...items.swords.usedQtip, x: 1300, y: 560 }
+            { ...items.swords.usedQtip, uid: 'qtip_sword_1', respawnType: 'never', x: 1300, y: 560 }
         ],
         // NEW: Array for nests
         nests: [
@@ -50,8 +50,8 @@ export const levelData = {
             }
         ],
         enemies: [
-            { type: "little_brown_skink", x: 1300, y: 570 },
-            { type: "little_brown_skink", x: 1800, y: 570 }
+            { id: 'skink_1', type: "little_brown_skink", x: 1300, y: 570, respawnType: 'room' },
+            { id: 'skink_2', type: "little_brown_skink", x: 1800, y: 570, respawnType: 'room' }
         ],
     },
 };
