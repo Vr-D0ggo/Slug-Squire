@@ -50,6 +50,7 @@ export default class Player {
         // friction is no longer needed as the player stops immediately
         this.wasJumpPressed = false;
         this.walkCycle = 0;
+        this.walkTime = 0;
 
         // --- Death state ---
         this.isDead = false;
@@ -167,6 +168,8 @@ export default class Player {
         let drawY = overrideY !== undefined ? overrideY : this.y;
         const currentWalkCycle = isStatic ? 0 : this.walkCycle;
         const legHeight = this.getLegHeight();
+        const armLength = 20;
+        const armAngle = Math.sin(currentWalkCycle + Math.PI / 2) * 0.3;
 
         context.save();
         if (this.isDead) {
@@ -215,8 +218,6 @@ export default class Player {
             context.fillStyle = '#111';
             context.strokeStyle = '#555';
             const armWidth = 4;
-            const armLength = 20;
-            const angle = Math.sin(currentWalkCycle + Math.PI / 2) * 0.3;
             [1, -1].forEach((dir) => {
                 context.save();
                 if (dir === 1) {
@@ -224,7 +225,7 @@ export default class Player {
                 } else {
                     context.translate(drawX, drawY + this.height * 0.6);
                 }
-                context.rotate(dir === 1 ? angle : -angle);
+                context.rotate(dir === 1 ? armAngle : -armAngle);
                 context.fillRect(dir === 1 ? 0 : -armLength, -armWidth / 2, armLength, armWidth);
                 context.beginPath();
                 context.moveTo(dir === 1 ? 0 : -armLength, 0);
@@ -238,19 +239,19 @@ export default class Player {
             context.fillStyle = '#bbb';
             const swordWidth = 4;
             const swordHeight = 25;
-            if (this.isRunning) {
-                context.fillRect(drawX + this.width / 2 - swordWidth / 2, drawY - swordHeight, swordWidth, swordHeight);
-            } else if (this.slashTimer > 0) {
+            const handX = drawX + this.width + Math.cos(armAngle) * armLength;
+            const handY = drawY + this.height * 0.6 + Math.sin(armAngle) * armLength;
+            context.save();
+            context.translate(handX, handY);
+            if (this.slashTimer > 0) {
                 const progress = 1 - this.slashTimer / this.slashDuration;
-                context.save();
-                context.translate(drawX + this.width, drawY + this.height * 0.5);
                 const angle = progress * Math.PI;
                 context.rotate(angle);
                 context.fillRect(0, -swordWidth / 2, swordHeight, swordWidth);
-                context.restore();
             } else {
-                context.fillRect(drawX + this.width, drawY + this.height * 0.5 - swordHeight, swordWidth, swordHeight);
+                context.fillRect(-swordWidth / 2, -swordHeight, swordWidth, swordHeight);
             }
+            context.restore();
         }
 
         // Player health is now drawn by the main UI rather than above the
@@ -268,19 +269,24 @@ export default class Player {
             this.slashTimer--;
             this.vx = 0;
         } else {
-            this.isRunning = input.isActionPressed('run');
             const currentSpeed = this.getCurrentSpeed();
-            const speed = this.isRunning ? currentSpeed * this.runMultiplier : currentSpeed;
             if (input.isActionPressed('right')) {
-                this.vx = speed;
+                this.vx = currentSpeed;
             } else if (input.isActionPressed('left')) {
-                this.vx = -speed;
+                this.vx = -currentSpeed;
             } else {
                 // Stop instantly when no movement keys are pressed
                 this.vx = 0;
             }
             if (Math.abs(this.vx) > 0.1 && this.onGround) {
+                this.walkTime++;
+                if (this.walkTime >= 300) this.isRunning = true;
                 this.walkCycle += this.isRunning ? 0.5 : 0.25;
+            } else {
+                this.stopRunning();
+            }
+            if (this.isRunning) {
+                this.vx *= this.runMultiplier;
             }
         }
         this.x += this.vx;
@@ -306,6 +312,11 @@ export default class Player {
         if (this.x > rightBoundary) this.x = rightBoundary;
     }
 
+    stopRunning() {
+        this.isRunning = false;
+        this.walkTime = 0;
+    }
+
     attack(enemies) {
         if (!this.equipped.weapon || this.attackCooldown > 0) return;
         const range = this.isRunning ? 100 : 60;
@@ -322,7 +333,7 @@ export default class Player {
         this.slashDuration = this.isRunning ? 20 : 10;
         this.slashTimer = this.slashDuration;
         this.vx = 0;
-        this.isRunning = false;
+        this.stopRunning();
     }
 
     setPosition(x, y) {

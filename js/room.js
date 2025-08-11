@@ -136,6 +136,7 @@ export default class Room {
                 }
                 enemy.vx = 0;
                 player.health -= enemy.damage;
+                if (player.stopRunning) player.stopRunning();
             }
 
             // Mouth collision when attacking
@@ -149,6 +150,7 @@ export default class Room {
                 ) {
                     isColliding = true;
                     player.health -= enemy.damage;
+                    if (player.stopRunning) player.stopRunning();
                     enemy.hasDealtDamage = true;
                 }
             }
@@ -180,6 +182,7 @@ export default class Room {
                 } else if (!enemy.sleeping && playerPrevRight <= enemyPrevLeft && player.x + player.width > enemy.x) {
                     if (!enemy.hasDealtDamage) {
                         player.health -= enemy.damage;
+                        if (player.stopRunning) player.stopRunning();
                         enemy.hasDealtDamage = true;
                     }
                     enemy.mouthOpen = true;
@@ -194,6 +197,7 @@ export default class Room {
                 } else if (!enemy.sleeping && playerPrevLeft >= enemyPrevRight && player.x < enemy.x + enemy.width) {
                     if (!enemy.hasDealtDamage) {
                         player.health -= enemy.damage;
+                        if (player.stopRunning) player.stopRunning();
                         enemy.hasDealtDamage = true;
                     }
                     enemy.mouthOpen = true;
