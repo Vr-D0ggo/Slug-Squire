@@ -152,6 +152,7 @@ export default class Room {
                     player.health -= enemy.damage;
                     if (player.stopRunning) player.stopRunning();
                     enemy.hasDealtDamage = true;
+                    if (enemy.onDealDamage) enemy.onDealDamage(player);
                 }
             }
 
@@ -184,6 +185,7 @@ export default class Room {
                         player.health -= enemy.damage;
                         if (player.stopRunning) player.stopRunning();
                         enemy.hasDealtDamage = true;
+                        if (enemy.onDealDamage) enemy.onDealDamage(player);
                     }
                     enemy.mouthOpen = true;
                     enemy.mouthTimer = 20;
@@ -199,6 +201,7 @@ export default class Room {
                         player.health -= enemy.damage;
                         if (player.stopRunning) player.stopRunning();
                         enemy.hasDealtDamage = true;
+                        if (enemy.onDealDamage) enemy.onDealDamage(player);
                     }
                     enemy.mouthOpen = true;
                     enemy.mouthTimer = 20;

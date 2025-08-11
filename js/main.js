@@ -113,7 +113,7 @@ function loadSave(slot) {
     const slots = JSON.parse(localStorage.getItem('saveSlots') || '[]');
     return slots[slot] || {
         inventory: [],
-        equipped: { arms: null, legs: null, weapon: null, wings: null },
+        equipped: { arms: null, legs: null, weapon: null, wings: null, armor: null },
         isEvolved: false,
         stats: { items: 0, bosses: 0, money: 0 },
         lastNest: null,
@@ -130,7 +130,8 @@ function saveGame() {
             arms: player.equipped.arms ? player.equipped.arms.id : null,
             legs: player.equipped.legs ? player.equipped.legs.id : null,
             weapon: player.equipped.weapon ? player.equipped.weapon.id : null,
-            wings: player.equipped.wings ? player.equipped.wings.id : null
+            wings: player.equipped.wings ? player.equipped.wings.id : null,
+            armor: player.equipped.armor ? player.equipped.armor.id : null
         },
         isEvolved: player.isEvolved,
         stats: {
@@ -389,7 +390,7 @@ window.addEventListener('keyup', (e) => {
         if (gameState === 'PLAYING') {
             // When opening inventory away from a nest, clear staging
             if (!player.atNest) {
-                player.stagedEquipment = { arms: null, legs: null, weapon: null, wings: null };
+                player.stagedEquipment = { arms: null, legs: null, weapon: null, wings: null, armor: null };
             }
             gameState = 'INVENTORY';
         } else if (gameState === 'INVENTORY') {
@@ -430,9 +431,10 @@ function startGame(slotIndex) {
         arms: data.equipped.arms ? getItemById(data.equipped.arms) : null,
         legs: data.equipped.legs ? getItemById(data.equipped.legs) : null,
         weapon: data.equipped.weapon ? getItemById(data.equipped.weapon) : null,
-        wings: data.equipped.wings ? getItemById(data.equipped.wings) : null
+        wings: data.equipped.wings ? getItemById(data.equipped.wings) : null,
+        armor: data.equipped.armor ? getItemById(data.equipped.armor) : null
     };
-    if (data.isEvolved || player.equipped.arms || player.equipped.legs || player.equipped.weapon || player.equipped.wings) {
+    if (data.isEvolved || player.equipped.arms || player.equipped.legs || player.equipped.weapon || player.equipped.wings || player.equipped.armor) {
         player.evolve();
     }
     gameState = 'PLAYING';

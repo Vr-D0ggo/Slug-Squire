@@ -18,8 +18,9 @@ export default class Player {
         this.lastNest = null; // Last visited nest for respawn
 
         // --- UPDATED: Equipment System ---
-        this.equipped = { arms: null, legs: null, weapon: null, wings: null };
-        this.stagedEquipment = { arms: null, legs: null, weapon: null, wings: null }; // Pending changes
+        this.equipped = { arms: null, legs: null, weapon: null, wings: null, armor: null };
+        this.stagedEquipment = { arms: null, legs: null, weapon: null, wings: null, armor: null }; // Pending changes
+        this.itemSprites = {}; // Lazy-loaded item images
 
         // --- NEW: Unevolved slug sprites ---
         this.sprites = {
@@ -127,6 +128,7 @@ export default class Player {
         if (this.equipped.legs) total += this.equipped.legs.stats.Weight;
         if (this.equipped.weapon) total += this.equipped.weapon.stats.Weight;
         if (this.equipped.wings) total += this.equipped.wings.stats.Weight;
+        if (this.equipped.armor) total += this.equipped.armor.stats.Weight;
         return total;
     }
 
@@ -260,20 +262,40 @@ export default class Player {
         }
 
         if (this.equipped.weapon) {
-            context.fillStyle = '#bbb';
+            const weapon = this.equipped.weapon;
             const swordWidth = 4;
             const swordHeight = 25;
             const handX = drawX + this.width + Math.cos(armAngle) * armLength;
             const handY = drawY + this.height * 0.6 + Math.sin(armAngle) * armLength;
             context.save();
             context.translate(handX, handY);
+            let img = null;
+            if (weapon.image) {
+                img = this.itemSprites[weapon.id];
+                if (!img) {
+                    img = new Image();
+                    img.src = weapon.image;
+                    this.itemSprites[weapon.id] = img;
+                }
+            }
             if (this.slashTimer > 0) {
                 const progress = 1 - this.slashTimer / this.slashDuration;
                 const angle = progress * Math.PI;
                 context.rotate(angle);
-                context.fillRect(0, -swordWidth / 2, swordHeight, swordWidth);
+                if (img && img.complete) {
+                    context.drawImage(img, 0, -weapon.height / 2, weapon.width, weapon.height);
+                } else {
+                    context.fillStyle = '#bbb';
+                    context.fillRect(0, -swordWidth / 2, swordHeight, swordWidth);
+                }
             } else {
-                context.fillRect(-swordWidth / 2, -swordHeight, swordWidth, swordHeight);
+                if (img && img.complete) {
+                    context.rotate(-Math.PI / 2);
+                    context.drawImage(img, -weapon.height / 2, -weapon.width, weapon.height, weapon.width);
+                } else {
+                    context.fillStyle = '#bbb';
+                    context.fillRect(-swordWidth / 2, -swordHeight, swordWidth, swordHeight);
+                }
             }
             context.restore();
         }
