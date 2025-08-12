@@ -270,28 +270,6 @@ export default class Player {
             const defaultWidth = weapon.width;
             const defaultHeight = weapon.height;
 
-            // Hand position in both world and draw coordinates
-            const handWorldX = this.x + this.width + Math.cos(armAngle) * armLength;
-            const handWorldY = this.y + this.height * 0.6 + Math.sin(armAngle) * armLength;
-            const handX = drawX + this.width + Math.cos(armAngle) * armLength;
-            const handY = drawY + this.height * 0.6 + Math.sin(armAngle) * armLength;
-
-            // Base weapon angle determined by facing and look direction
-            let angle = 0;
-            if (this.lookDirection === 'up') {
-                angle = -Math.PI / 2;
-            } else if (this.lookDirection === 'down') {
-                angle = Math.PI / 2;
-            }
-            if (this.slashTimer > 0) {
-                const progress = 1 - this.slashTimer / this.slashDuration;
-                angle += progress * Math.PI;
-            }
-
-            context.save();
-            context.translate(handX, handY);
-            context.rotate(angle);
-
             let img = null;
             if (weapon.image) {
                 img = this.itemSprites[weapon.id];
@@ -303,13 +281,43 @@ export default class Player {
             }
             const drawW = img && img.complete ? img.width : defaultWidth;
             const drawH = img && img.complete ? img.height : defaultHeight;
-            if (img && img.complete) {
-                context.drawImage(img, 0, -drawH / 2, drawW, drawH);
+
+            if (this.slashTimer > 0) {
+                const handX = drawX + this.width + Math.cos(armAngle) * armLength;
+                const handY = drawY + this.height * 0.6 + Math.sin(armAngle) * armLength;
+                const progress = 1 - this.slashTimer / this.slashDuration;
+                let angle;
+                if (this.lookDirection === 'up') {
+                    angle = Math.PI / 2 - progress * Math.PI;
+                } else if (this.lookDirection === 'down') {
+                    angle = -Math.PI / 2 + progress * Math.PI;
+                } else {
+                    angle = progress * Math.PI;
+                }
+                context.save();
+                context.translate(handX, handY);
+                context.rotate(angle);
+                if (img && img.complete) {
+                    context.drawImage(img, 0, -drawH / 2, drawW, drawH);
+                } else {
+                    context.fillStyle = '#bbb';
+                    context.fillRect(0, -drawH / 2, drawW, drawH);
+                }
+                context.restore();
             } else {
-                context.fillStyle = '#bbb';
-                context.fillRect(0, -drawH / 2, drawW, drawH);
+                context.save();
+                const backX = drawX + this.width / 2;
+                const backY = drawY + this.height / 2;
+                context.translate(backX, backY);
+                context.rotate(Math.PI / 4);
+                if (img && img.complete) {
+                    context.drawImage(img, -drawW / 2, -drawH / 2, drawW, drawH);
+                } else {
+                    context.fillStyle = '#bbb';
+                    context.fillRect(-drawW / 2, -drawH / 2, drawW, drawH);
+                }
+                context.restore();
             }
-            context.restore();
         }
 
         // Player health is now drawn by the main UI rather than above the
@@ -338,7 +346,7 @@ export default class Player {
             }
             if (Math.abs(this.vx) > 0.1 && this.onGround) {
                 this.walkTime++;
-                if (this.walkTime >= 300) this.isRunning = true;
+                if (this.walkTime >= 120) this.isRunning = true;
                 this.walkCycle += this.isRunning ? 0.5 : 0.25;
             } else {
                 this.stopRunning();

@@ -9,7 +9,6 @@ export default class InputHandler {
             inventory: 'e',
             interact: 'o',
             attack: 'u',
-            run: 'shift',
             lookUp: 'w',
             lookDown: 's'
         };
@@ -65,7 +64,6 @@ export default class InputHandler {
             inventory: 'e',
             interact: 'o',
             attack: 'u',
-            run: 'shift',
             lookUp: 'w',
             lookDown: 's'
         };
