@@ -107,6 +107,11 @@ export default class Room {
             const prevY = enemy.y;
             enemy.update(this, player);
 
+            if (enemy.interacting && enemy.interactTarget && enemy.interactTarget !== player) {
+                enemy.hasDealtDamage = false;
+                return;
+            }
+
             if (enemy.sleeping) {
                 if (
                     player.x < enemy.x + enemy.width &&

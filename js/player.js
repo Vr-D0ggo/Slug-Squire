@@ -189,7 +189,10 @@ export default class Player {
         let drawY = overrideY !== undefined ? overrideY : this.y;
         const currentWalkCycle = isStatic ? 0 : this.walkCycle;
         const legHeight = this.getLegHeight();
-        const armLength = 20;
+        let armLength = 20;
+        if (this.slashTimer > 0 && this.attackArea) {
+            armLength = this.lookDirection === 'forward' ? this.attackArea.width : this.attackArea.height;
+        }
         const armAngle = Math.sin(currentWalkCycle + Math.PI / 2) * 0.3;
 
         context.save();
@@ -376,10 +379,12 @@ export default class Player {
                 // Stop instantly when no movement keys are pressed
                 this.vx = 0;
             }
-            if (Math.abs(this.vx) > 0.1 && this.onGround) {
-                this.walkTime++;
-                if (this.walkTime >= 120) this.isRunning = true;
-                this.walkCycle += this.isRunning ? 0.5 : 0.25;
+            if (Math.abs(this.vx) > 0.1) {
+                if (this.onGround) {
+                    this.walkTime++;
+                    if (this.walkTime >= 120) this.isRunning = true;
+                    this.walkCycle += this.isRunning ? 0.5 : 0.25;
+                }
             } else {
                 this.stopRunning();
             }
@@ -456,7 +461,7 @@ export default class Player {
         let area;
         const quarterW = this.width / 4;
         const quarterH = this.height / 4;
-        const sideWidth = quarterW * 3;
+        const sideWidth = this.width * 1.5;
         const upDownWidth = this.width * 1.5;
         const horizontalOffset = (upDownWidth - this.width) / 2;
         if (this.lookDirection === 'up') {
@@ -474,10 +479,13 @@ export default class Player {
                 height: quarterH
             };
         } else {
+            const attackY = this.y - quarterH;
+            const floorY = this.gameHeight - 20;
+            const sideHeight = floorY - attackY;
             if (this.facingRight) {
-                area = { x: this.x + this.width, y: this.y, width: sideWidth, height: this.height };
+                area = { x: this.x + this.width, y: attackY, width: sideWidth, height: sideHeight };
             } else {
-                area = { x: this.x - sideWidth, y: this.y, width: sideWidth, height: this.height };
+                area = { x: this.x - sideWidth, y: attackY, width: sideWidth, height: sideHeight };
             }
         }
         const intersects = (a, b) => {
@@ -529,7 +537,7 @@ export default class Player {
             if (this.lookDirection === 'up') dy = -1;
             else if (this.lookDirection === 'down') dy = 1;
             else dx = this.facingRight ? 1 : -1;
-            this.projectiles.push(new WebProjectile(rearX, rearY, dx, dy));
+            this.projectiles.push(new WebProjectile(rearX, rearY, dx, dy, this.gameHeight - 20));
             this.abilityCooldown = 60;
         }
     }
@@ -546,7 +554,7 @@ export default class Player {
                     break;
                 }
             }
-            if (p.life <= 0) this.projectiles.splice(i, 1);
+            if (p.hitGround) this.projectiles.splice(i, 1);
         }
         if (this.abilityCooldown > 0) this.abilityCooldown--;
     }

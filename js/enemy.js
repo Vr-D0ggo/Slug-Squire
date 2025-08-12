@@ -94,6 +94,9 @@ export class LittleBrownSkink extends Enemy {
         this.willSleep = false;
         this.sleeping = false;
         this.sleepTimer = 0;
+        this.wakeDelay = 0;
+
+        this.postStunDelay = 0;
 
         // Post-hit behavior
         this.afterHitState = null; // 'retreat' or 'charge'
@@ -136,13 +139,18 @@ export class LittleBrownSkink extends Enemy {
     update(room, player) {
         if (this.sleepTimer > 0) {
             this.sleepTimer--;
-            if (this.sleepTimer === 0) this.sleeping = false;
+            if (this.sleepTimer === 0) {
+                this.sleeping = false;
+                this.wakeDelay = 60;
+            }
             this.vx = 0;
             this.mouthOpen = false;
             super.update(room);
             // No turning or attacking while asleep
             return;
         }
+
+        if (this.wakeDelay > 0) this.wakeDelay--;
 
         if (this.interacting) {
             const other = this.interactTarget;
@@ -251,6 +259,10 @@ export class LittleBrownSkink extends Enemy {
         if (this.stunTimer > 0) {
             this.stunTimer--;
             this.vx = 0;
+            if (this.stunTimer === 0) this.postStunDelay = 60;
+        } else if (this.postStunDelay > 0) {
+            this.postStunDelay--;
+            this.vx = 0;
         } else {
             if (this.aggro) {
                 if (this.aggroPauseTimer > 0) {
@@ -306,7 +318,7 @@ export class LittleBrownSkink extends Enemy {
             if (this.mouthTimer === 0) {
                 this.mouthOpen = false;
             }
-        } else if (this.aggro) {
+        } else if (this.aggro && this.wakeDelay === 0 && this.postStunDelay === 0) {
             this.attack(player);
         }
 
