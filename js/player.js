@@ -456,15 +456,28 @@ export default class Player {
         let area;
         const quarterW = this.width / 4;
         const quarterH = this.height / 4;
+        const sideWidth = quarterW * 3;
+        const upDownWidth = this.width * 1.5;
+        const horizontalOffset = (upDownWidth - this.width) / 2;
         if (this.lookDirection === 'up') {
-            area = { x: this.x, y: this.y - quarterH, width: this.width, height: quarterH };
+            area = {
+                x: this.x - horizontalOffset,
+                y: this.y - quarterH,
+                width: upDownWidth,
+                height: quarterH
+            };
         } else if (this.lookDirection === 'down') {
-            area = { x: this.x, y: this.y + this.height, width: this.width, height: quarterH };
+            area = {
+                x: this.x - horizontalOffset,
+                y: this.y + this.height,
+                width: upDownWidth,
+                height: quarterH
+            };
         } else {
             if (this.facingRight) {
-                area = { x: this.x + this.width, y: this.y, width: quarterW, height: this.height };
+                area = { x: this.x + this.width, y: this.y, width: sideWidth, height: this.height };
             } else {
-                area = { x: this.x - quarterW, y: this.y, width: quarterW, height: this.height };
+                area = { x: this.x - sideWidth, y: this.y, width: sideWidth, height: this.height };
             }
         }
         const intersects = (a, b) => {
