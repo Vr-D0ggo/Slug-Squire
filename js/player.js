@@ -535,12 +535,14 @@ export default class Player {
                     if (room && room.powerups) {
                         const drops = 1 + Math.floor(Math.random() * 2);
                         for (let d = 0; d < drops; d++) {
+                            const size = 20;
                             room.powerups.push({
                                 type: 'meat',
-                                x: enemy.x + enemy.width / 2 - 10 + d * 15,
-                                y: enemy.y + enemy.height - 10,
-                                width: 20,
-                                height: 20
+                                x: enemy.x + enemy.width / 2 - size / 2 + d * 15,
+                                y: enemy.y + enemy.height - size,
+                                width: size,
+                                height: size,
+                                timer: 0
                             });
                         }
                     }

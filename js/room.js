@@ -208,14 +208,6 @@ export default class Room {
                     player.vy = 0;
                     player.y = enemy.y + enemy.height;
                 } else if (!enemy.sleeping && playerPrevRight <= enemyPrevLeft && player.x + player.width > enemy.x) {
-                    if (!enemy.hasDealtDamage) {
-                        player.applyDamage(enemy.damage, enemy.damageType);
-                        if (player.stopRunning) player.stopRunning();
-                        enemy.hasDealtDamage = true;
-                        if (enemy.onDealDamage) enemy.onDealDamage(player);
-                    }
-                    enemy.mouthOpen = true;
-                    enemy.mouthTimer = 20;
                     if (player.vx > 0) {
                         player.x = enemy.x - player.width;
                         player.vx = 0;
@@ -224,14 +216,6 @@ export default class Room {
                         enemy.vx = 0;
                     }
                 } else if (!enemy.sleeping && playerPrevLeft >= enemyPrevRight && player.x < enemy.x + enemy.width) {
-                    if (!enemy.hasDealtDamage) {
-                        player.applyDamage(enemy.damage, enemy.damageType);
-                        if (player.stopRunning) player.stopRunning();
-                        enemy.hasDealtDamage = true;
-                        if (enemy.onDealDamage) enemy.onDealDamage(player);
-                    }
-                    enemy.mouthOpen = true;
-                    enemy.mouthTimer = 20;
                     if (player.vx < 0) {
                         player.x = enemy.x + enemy.width;
                         player.vx = 0;
@@ -248,6 +232,7 @@ export default class Room {
         });
 
         this.handleSkinkInteractions();
+        this.handleMeat();
     }
 
     handleSkinkInteractions() {
@@ -264,6 +249,30 @@ export default class Room {
                         const sleeper = Math.random() < 0.5 ? a : b;
                         a.startInteraction(b, sleeper === a);
                         b.startInteraction(a, sleeper === b);
+                    }
+                }
+            }
+        }
+    }
+
+    handleMeat() {
+        for (let i = 0; i < this.powerups.length; i++) {
+            const p = this.powerups[i];
+            if (p.type === 'meat') {
+                p.timer = (p.timer || 0) + 1;
+                if (p.timer > 180) {
+                    let nearest = null;
+                    let dist = Infinity;
+                    this.enemies.forEach(e => {
+                        if (e instanceof LittleBrownSkink && !e.eating && !e.targetMeat) {
+                            const d = Math.abs((e.x + e.width / 2) - (p.x + p.width / 2));
+                            if (d < dist) { dist = d; nearest = e; }
+                        }
+                    });
+                    if (nearest) {
+                        nearest.targetMeat = { x: p.x, y: p.y, width: p.width, height: p.height };
+                        this.powerups.splice(i, 1);
+                        i--;
                     }
                 }
             }
