@@ -24,6 +24,9 @@ const rightKeyBtn = document.getElementById('right-key-btn');
 const jumpKeyBtn = document.getElementById('jump-key-btn');
 const inventoryKeyBtn = document.getElementById('inventory-key-btn');
 const interactKeyBtn = document.getElementById('interact-key-btn');
+const attackKeyBtn = document.getElementById('attack-key-btn');
+const lookupKeyBtn = document.getElementById('lookup-key-btn');
+const lookdownKeyBtn = document.getElementById('lookdown-key-btn');
 const saveBindsBtn = document.getElementById('save-binds');
 const resetBindsBtn = document.getElementById('reset-binds');
 const backButton = document.getElementById('back-button');
@@ -497,6 +500,9 @@ function updateBindDisplay() {
     jumpKeyBtn.textContent = input.bindings.jump.toUpperCase();
     inventoryKeyBtn.textContent = input.bindings.inventory.toUpperCase();
     interactKeyBtn.textContent = input.bindings.interact.toUpperCase();
+    attackKeyBtn.textContent = input.bindings.attack.toUpperCase();
+    lookupKeyBtn.textContent = input.bindings.lookUp.toUpperCase();
+    lookdownKeyBtn.textContent = input.bindings.lookDown.toUpperCase();
 }
 
 rebindButton.addEventListener('click', () => {
@@ -529,6 +535,15 @@ inventoryKeyBtn.addEventListener('click', () => {
 });
 interactKeyBtn.addEventListener('click', () => {
     input.startRebind('interact');
+});
+attackKeyBtn.addEventListener('click', () => {
+    input.startRebind('attack');
+});
+lookupKeyBtn.addEventListener('click', () => {
+    input.startRebind('lookUp');
+});
+lookdownKeyBtn.addEventListener('click', () => {
+    input.startRebind('lookDown');
 });
 
 input.onRebindComplete = updateBindDisplay;
