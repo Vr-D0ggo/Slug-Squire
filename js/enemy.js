@@ -17,12 +17,17 @@ export class Enemy {
         this.strengths = {};
         this.weaknesses = {};
         this.damageType = 'physical';
+
+        this.slowTimer = 0;
+        this.slowFactor = 1;
     }
 
     update(room) {
+        if (this.slowTimer > 0) this.slowTimer--;
+        else this.slowFactor = 1;
         this.vy += 0.8;
-        this.x += this.vx;
-        this.y += this.vy;
+        this.x += this.vx * this.slowFactor;
+        this.y += this.vy * this.slowFactor;
         this.onGround = false;
         room.platforms.forEach(p => {
             if (this.x < p.x + p.width &&
@@ -41,6 +46,10 @@ export class Enemy {
     draw(ctx) {
         ctx.fillStyle = this.color;
         ctx.fillRect(this.x, this.y, this.width, this.height);
+        if (this.slowTimer > 0) {
+            ctx.fillStyle = 'rgba(255,255,255,0.5)';
+            ctx.fillRect(this.x, this.y, this.width, this.height);
+        }
     }
 }
 
@@ -366,6 +375,10 @@ export class LittleBrownSkink extends Enemy {
             const mouthY = this.mouth.y + (this.mouth.height - currentHeight) / 2;
             ctx.fillStyle = '#ff9acb';
             ctx.fillRect(this.mouth.x, mouthY, this.mouth.width, currentHeight);
+        }
+        if (this.slowTimer > 0) {
+            ctx.fillStyle = 'rgba(255,255,255,0.5)';
+            ctx.fillRect(this.x, this.y, this.width, this.height);
         }
     }
 }

@@ -26,6 +26,18 @@ export const items = {
     wings: {
         // future wing items can go here
     },
+    abilities: {
+        spittingSpiderAbdomen: {
+            id: 'spitting_spider_abdomen',
+            name: 'Spitting Spider Abdomen',
+            type: 'ability',
+            width: 20,
+            height: 20,
+            color: '#000000',
+            stats: { Weight: 30 },
+            description: 'Fires webbing that slows foes.'
+        }
+    },
     swords: {
         usedQtip: {
             id: 'used_q_tip',

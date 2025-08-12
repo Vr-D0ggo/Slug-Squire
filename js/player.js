@@ -1,5 +1,7 @@
 // js/player.js
 
+import { WebProjectile } from './projectiles.js';
+
 export default class Player {
     constructor(gameWidth, gameHeight) {
         this.gameWidth = gameWidth;
@@ -18,8 +20,8 @@ export default class Player {
         this.lastNest = null; // Last visited nest for respawn
 
         // --- UPDATED: Equipment System ---
-        this.equipped = { arms: null, legs: null, weapon: null, wings: null, armor: null };
-        this.stagedEquipment = { arms: null, legs: null, weapon: null, wings: null, armor: null }; // Pending changes
+        this.equipped = { arms: null, legs: null, weapon: null, wings: null, armor: null, ability: null, trinket: null };
+        this.stagedEquipment = { arms: null, legs: null, weapon: null, wings: null, armor: null, ability: null, trinket: null }; // Pending changes
         this.itemSprites = {}; // Lazy-loaded item images
 
         // --- NEW: Unevolved slug sprites ---
@@ -37,7 +39,7 @@ export default class Player {
         // Make the unevolved slug sprites larger on screen
         this.baseWidth = 80; this.baseHeight = 40;
         this.evolvedWidth = 25; this.evolvedHeight = 50;
-        this.baseSpeed = 3;
+        this.baseSpeed = 1.5;
         this.baseJumpPower = 0;
         this.baseWeight = 0.8; // Gravity constant
         this.bodyWeightMg = 500; // Weight of the slug in mg
@@ -63,6 +65,10 @@ export default class Player {
         this.runMultiplier = 2;
         this.slashTimer = 0;
         this.slashDuration = 0;
+
+        // --- Ability system ---
+        this.abilityCooldown = 0;
+        this.projectiles = [];
 
         // Direction the player is facing; used for sprite flipping
         this.facingRight = true;
@@ -133,6 +139,8 @@ export default class Player {
         if (this.equipped.weapon) total += this.equipped.weapon.stats.Weight;
         if (this.equipped.wings) total += this.equipped.wings.stats.Weight;
         if (this.equipped.armor) total += this.equipped.armor.stats.Weight;
+        if (this.equipped.ability) total += this.equipped.ability.stats.Weight;
+        if (this.equipped.trinket) total += this.equipped.trinket.stats.Weight;
         return total;
     }
 
@@ -244,6 +252,15 @@ export default class Player {
             context.fillRect(drawX, drawY, this.width, 7);
         }
 
+        if (this.equipped.ability && this.equipped.ability.id === 'spitting_spider_abdomen') {
+            const rearX = drawX - 10;
+            const rearY = drawY + this.height - 10;
+            context.fillStyle = '#000';
+            context.beginPath();
+            context.arc(rearX, rearY, 10, 0, Math.PI * 2);
+            context.fill();
+        }
+
         if (this.equipped.arms) {
             context.fillStyle = '#111';
             context.strokeStyle = '#555';
@@ -283,20 +300,22 @@ export default class Player {
             const drawH = img && img.complete ? img.height : defaultHeight;
 
             if (this.slashTimer > 0) {
-                const handX = drawX + this.width + Math.cos(armAngle) * armLength;
-                const handY = drawY + this.height * 0.6 + Math.sin(armAngle) * armLength;
                 const progress = 1 - this.slashTimer / this.slashDuration;
-                let angle;
-                if (this.lookDirection === 'up') {
-                    angle = Math.PI / 2 - progress * Math.PI;
-                } else if (this.lookDirection === 'down') {
-                    angle = -Math.PI / 2 + progress * Math.PI;
-                } else {
-                    angle = progress * Math.PI;
-                }
                 context.save();
-                context.translate(handX, handY);
-                context.rotate(angle);
+                let angle = progress * Math.PI;
+                if (this.lookDirection === 'up' || this.lookDirection === 'down') {
+                    const pivotX = drawX + this.width / 2;
+                    const pivotY = drawY + this.height * 0.6;
+                    context.translate(pivotX, pivotY);
+                    context.rotate(angle);
+                    const offsetY = this.lookDirection === 'up' ? -armLength : armLength;
+                    context.translate(0, offsetY);
+                } else {
+                    const handX = drawX + this.width + Math.cos(armAngle) * armLength;
+                    const handY = drawY + this.height * 0.6 + Math.sin(armAngle) * armLength;
+                    context.translate(handX, handY);
+                    context.rotate(angle);
+                }
                 if (img && img.complete) {
                     context.drawImage(img, 0, -drawH / 2, drawW, drawH);
                 } else {
@@ -414,13 +433,25 @@ export default class Player {
         if (!this.equipped.weapon || this.attackCooldown > 0) return false;
         const range = this.isRunning ? 100 : 60;
         let removed = false;
+        const weapon = this.equipped.weapon;
+        let area;
+        if (this.lookDirection === 'up') {
+            area = { x: this.x - range / 2, y: this.y - range, width: this.width + range, height: range };
+        } else if (this.lookDirection === 'down') {
+            area = { x: this.x - range / 2, y: this.y + this.height, width: this.width + range, height: range };
+        } else {
+            if (this.facingRight) {
+                area = { x: this.x + this.width, y: this.y + this.height * 0.6 - weapon.height / 2, width: range, height: weapon.height };
+            } else {
+                area = { x: this.x - range, y: this.y + this.height * 0.6 - weapon.height / 2, width: range, height: weapon.height };
+            }
+        }
+        const intersects = (a, b) => {
+            return a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
+        };
         for (let i = enemies.length - 1; i >= 0; i--) {
             const enemy = enemies[i];
-            const dx = (this.x + this.width / 2) - (enemy.x + enemy.width / 2);
-            const dy = (this.y + this.height / 2) - (enemy.y + enemy.height / 2);
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            if (distance < range) {
-                const weapon = this.equipped.weapon;
+            if (intersects(area, enemy)) {
                 let dmg = weapon.damage || 0;
                 const type = weapon.damageType || 'slashing';
                 if (enemy.weaknesses && enemy.weaknesses[type]) {
@@ -451,6 +482,41 @@ export default class Player {
         this.vx = 0;
         this.stopRunning();
         return removed;
+    }
+
+    useAbility() {
+        if (!this.equipped.ability || this.abilityCooldown > 0) return;
+        if (this.equipped.ability.id === 'spitting_spider_abdomen') {
+            const rearX = this.facingRight ? this.x : this.x + this.width;
+            const rearY = this.y + this.height - 10;
+            let dx = 0, dy = 0;
+            if (this.lookDirection === 'up') dy = -1;
+            else if (this.lookDirection === 'down') dy = 1;
+            else dx = this.facingRight ? 1 : -1;
+            this.projectiles.push(new WebProjectile(rearX, rearY, dx, dy));
+            this.abilityCooldown = 60;
+        }
+    }
+
+    updateProjectiles(enemies) {
+        for (let i = this.projectiles.length - 1; i >= 0; i--) {
+            const p = this.projectiles[i];
+            p.update();
+            for (const enemy of enemies) {
+                if (p.collides(enemy)) {
+                    enemy.slowTimer = 120;
+                    enemy.slowFactor = 0.5;
+                    this.projectiles.splice(i, 1);
+                    break;
+                }
+            }
+            if (p.life <= 0) this.projectiles.splice(i, 1);
+        }
+        if (this.abilityCooldown > 0) this.abilityCooldown--;
+    }
+
+    drawProjectiles(context) {
+        this.projectiles.forEach(p => p.draw(context));
     }
 
     setPosition(x, y) {

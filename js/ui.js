@@ -130,6 +130,20 @@ export class InventoryUI {
                 y: previewBoxY + previewBoxHeight - slotSize - 10,
                 width: slotSize,
                 height: slotSize
+            },
+            ability: {
+                type: 'ability',
+                x: previewBoxX + previewBoxWidth - slotSize - 10,
+                y: previewBoxY + previewBoxHeight - slotSize - 10,
+                width: slotSize,
+                height: slotSize
+            },
+            trinket: {
+                type: 'trinket',
+                x: previewBoxX - slotSize - 10,
+                y: previewBoxY + (previewBoxHeight - slotSize) / 2,
+                width: slotSize,
+                height: slotSize
             }
         };
 
@@ -261,6 +275,11 @@ export class InventoryUI {
             if (img.complete) {
                 ctx.drawImage(img, centerX - size/2, centerY - size/2, size, size);
             }
+        } else if (item.type === 'ability') {
+            ctx.fillStyle = item.color;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, size/2, 0, Math.PI * 2);
+            ctx.fill();
         } else {
             ctx.fillStyle = '#ccc';
             ctx.textAlign = 'center';
@@ -272,6 +291,7 @@ export class InventoryUI {
             else if (item.type === 'weapon') text = 'S';
             else if (item.type === 'wings') text = 'W';
             else if (item.type === 'armor') text = 'C';
+            else if (item.type === 'trinket') text = 'T';
             ctx.fillText(text, centerX, centerY);
         }
     }

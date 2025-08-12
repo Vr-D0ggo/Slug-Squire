@@ -10,7 +10,8 @@ export default class InputHandler {
             interact: 'o',
             attack: 'u',
             lookUp: 'w',
-            lookDown: 's'
+            lookDown: 's',
+            ability: ' '
         };
         this.awaitingAction = null;
         this.onRebindComplete = null;
@@ -65,7 +66,8 @@ export default class InputHandler {
             interact: 'o',
             attack: 'u',
             lookUp: 'w',
-            lookDown: 's'
+            lookDown: 's',
+            ability: ' '
         };
         if (this.onRebindComplete) this.onRebindComplete();
     }

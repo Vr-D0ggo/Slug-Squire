@@ -115,7 +115,7 @@ function loadSave(slot) {
     const slots = JSON.parse(localStorage.getItem('saveSlots') || '[]');
     return slots[slot] || {
         inventory: [],
-        equipped: { arms: null, legs: null, weapon: null, wings: null, armor: null },
+        equipped: { arms: null, legs: null, weapon: null, wings: null, armor: null, ability: null, trinket: null },
         isEvolved: false,
         stats: { items: 0, bosses: 0, money: 0 },
         lastNest: null,
@@ -133,7 +133,9 @@ function saveGame() {
             legs: player.equipped.legs ? player.equipped.legs.id : null,
             weapon: player.equipped.weapon ? player.equipped.weapon.id : null,
             wings: player.equipped.wings ? player.equipped.wings.id : null,
-            armor: player.equipped.armor ? player.equipped.armor.id : null
+            armor: player.equipped.armor ? player.equipped.armor.id : null,
+            ability: player.equipped.ability ? player.equipped.ability.id : null,
+            trinket: player.equipped.trinket ? player.equipped.trinket.id : null
         },
         isEvolved: player.isEvolved,
         stats: {
@@ -215,6 +217,7 @@ function gameLoop() {
         // --- Game Logic Updates ---
         player.update(input, { width: currentRoom.width, height: currentRoom.height });
         currentRoom.updateEnemies(player);
+        player.updateProjectiles(currentRoom.enemies);
         const targetRoom = currentRoom.checkCollisions(player, respawnData, saveGame);
 
         if (player.health <= 0 && !deathSequence) {
@@ -232,6 +235,7 @@ function gameLoop() {
         ctx.translate(-camera.x, -camera.y);
         currentRoom.draw(ctx);
         player.draw(ctx);
+        player.drawProjectiles(ctx);
         drawInteractionPrompt(ctx, player, currentRoom, input.bindings.interact);
         ctx.restore();
 
@@ -260,6 +264,7 @@ function gameLoop() {
             ctx.translate(-camera.x, -camera.y);
             currentRoom.draw(ctx);
             player.draw(ctx);
+            player.drawProjectiles(ctx);
             ctx.restore();
             if (player.deathTime > 30) {
                 deathSequence.phase = 'fadeout';
@@ -271,6 +276,7 @@ function gameLoop() {
             ctx.translate(-camera.x, -camera.y);
             currentRoom.draw(ctx);
             player.draw(ctx);
+            player.drawProjectiles(ctx);
             ctx.restore();
             ctx.fillStyle = `rgba(0,0,0,${deathSequence.alpha})`;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -295,6 +301,7 @@ function gameLoop() {
             ctx.translate(-camera.x, -camera.y);
             currentRoom.draw(ctx);
             player.draw(ctx);
+            player.drawProjectiles(ctx);
             ctx.restore();
             ctx.fillStyle = `rgba(0,0,0,${Math.max(deathSequence.alpha,0)})`;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -384,6 +391,9 @@ window.addEventListener('keydown', (e) => {
         const removed = player.attack(currentRoom.enemies, respawnData, currentRoom.id);
         if (removed) saveGame();
     }
+    if (key === input.bindings.ability && gameState === 'PLAYING') {
+        player.useAbility();
+    }
 });
 
 window.addEventListener('keyup', (e) => {
@@ -392,7 +402,7 @@ window.addEventListener('keyup', (e) => {
         if (gameState === 'PLAYING') {
             // When opening inventory away from a nest, clear staging
             if (!player.atNest) {
-                player.stagedEquipment = { arms: null, legs: null, weapon: null, wings: null, armor: null };
+                player.stagedEquipment = { arms: null, legs: null, weapon: null, wings: null, armor: null, ability: null, trinket: null };
             }
             gameState = 'INVENTORY';
         } else if (gameState === 'INVENTORY') {
@@ -436,7 +446,9 @@ function startGame(slotIndex) {
         legs: data.equipped.legs ? getItemById(data.equipped.legs) : null,
         weapon: data.equipped.weapon ? getItemById(data.equipped.weapon) : null,
         wings: data.equipped.wings ? getItemById(data.equipped.wings) : null,
-        armor: data.equipped.armor ? getItemById(data.equipped.armor) : null
+        armor: data.equipped.armor ? getItemById(data.equipped.armor) : null,
+        ability: data.equipped.ability ? getItemById(data.equipped.ability) : null,
+        trinket: data.equipped.trinket ? getItemById(data.equipped.trinket) : null
     };
     if (data.isEvolved || player.equipped.arms || player.equipped.legs || player.equipped.weapon || player.equipped.wings || player.equipped.armor) {
         player.evolve();
