@@ -10,6 +10,7 @@ export default class Player {
         this.inventory = [];
         this.isEvolved = false;
         this.itemsCollected = 0;
+        this.meat = 0;
         this.bossesDefeated = 0;
         this.money = 0;
 
@@ -165,6 +166,10 @@ export default class Player {
             this.inventory.push(item);
             this.itemsCollected++;
         }
+    }
+
+    collectMeat() {
+        this.meat++;
     }
 
     getAttackSpeed() {
@@ -467,14 +472,14 @@ export default class Player {
         this.health -= amount * modifier;
     }
 
-    attack(enemies, respawnData, roomId) {
+    attack(enemies, respawnData, room) {
         if (!this.equipped.weapon || this.attackCooldown > 0) return false;
         let removed = false;
         const weapon = this.equipped.weapon;
         let area;
         const quarterW = this.width / 4;
         const quarterH = this.height / 4;
-        const sideWidth = this.width * 1.5;
+        const sideWidth = this.width * 2.25;
         const upDownWidth = this.width * 1.5;
         const horizontalOffset = (upDownWidth - this.width) / 2;
         if (this.lookDirection === 'up') {
@@ -489,11 +494,11 @@ export default class Player {
                 x: this.x - horizontalOffset,
                 y: this.y + this.height,
                 width: upDownWidth,
-                height: quarterH
+                height: quarterH * 1.15
             };
         } else {
             const attackY = this.y - quarterH;
-            const sideHeight = this.height + quarterH;
+            const sideHeight = (this.height + quarterH) * 1.15;
             if (this.facingRight) {
                 area = { x: this.x + this.width, y: attackY, width: sideWidth, height: sideHeight };
             } else {
@@ -516,17 +521,29 @@ export default class Player {
                 }
                 enemy.health -= dmg;
                 if (enemy.health <= 0) {
-                    if (respawnData && roomId !== undefined) {
+                    if (respawnData && room) {
                         if (enemy.respawnType === 'never') {
-                            if (!respawnData.permanent[roomId]) respawnData.permanent[roomId] = [];
-                            respawnData.permanent[roomId].push(enemy.id);
+                            if (!respawnData.permanent[room.id]) respawnData.permanent[room.id] = [];
+                            respawnData.permanent[room.id].push(enemy.id);
                         } else if (enemy.respawnType === 'bench') {
-                            if (!respawnData.bench[roomId]) respawnData.bench[roomId] = [];
-                            respawnData.bench[roomId].push(enemy.id);
+                            if (!respawnData.bench[room.id]) respawnData.bench[room.id] = [];
+                            respawnData.bench[room.id].push(enemy.id);
                         }
                     }
                     enemies.splice(i, 1);
                     removed = true;
+                    if (room && room.powerups) {
+                        const drops = 1 + Math.floor(Math.random() * 2);
+                        for (let d = 0; d < drops; d++) {
+                            room.powerups.push({
+                                type: 'meat',
+                                x: enemy.x + enemy.width / 2 - 10 + d * 15,
+                                y: enemy.y + enemy.height - 10,
+                                width: 20,
+                                height: 20
+                            });
+                        }
+                    }
                 }
             }
         }
