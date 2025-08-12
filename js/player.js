@@ -54,6 +54,7 @@ export default class Player {
         this.wasJumpPressed = false;
         this.walkCycle = 0;
         this.walkTime = 0;
+        this.hasDoubleJumped = false;
 
         // --- Death state ---
         this.isDead = false;
@@ -65,6 +66,8 @@ export default class Player {
         this.runMultiplier = 2;
         this.slashTimer = 0;
         this.slashDuration = 0;
+        this.attackArea = null;
+        this.attackFlashTimer = 0;
 
         // --- Ability system ---
         this.abilityCooldown = 0;
@@ -223,7 +226,7 @@ export default class Player {
         }
 
         if (this.equipped.wings) {
-            context.fillStyle = '#999';
+            context.fillStyle = this.equipped.wings.color || '#999';
             context.beginPath();
             context.moveTo(drawX - 10, drawY + this.height / 2);
             context.lineTo(drawX, drawY);
@@ -265,14 +268,19 @@ export default class Player {
             context.fillStyle = '#111';
             context.strokeStyle = '#555';
             const armWidth = 4;
+            const attackProgress = this.slashTimer > 0 ? 1 - this.slashTimer / this.slashDuration : null;
             [1, -1].forEach((dir) => {
                 context.save();
-                if (dir === 1) {
-                    context.translate(drawX + this.width, drawY + this.height * 0.6);
-                } else {
-                    context.translate(drawX, drawY + this.height * 0.6);
+                const baseX = dir === 1 ? drawX + this.width : drawX;
+                const baseY = drawY + this.height * 0.6;
+                context.translate(baseX, baseY);
+                let angle = dir === 1 ? armAngle : -armAngle;
+                if (attackProgress !== null) {
+                    if (this.lookDirection === 'up') angle = -Math.PI/2 + attackProgress * Math.PI;
+                    else if (this.lookDirection === 'down') angle = Math.PI/2 - attackProgress * Math.PI;
+                    else angle = dir === 1 ? attackProgress * Math.PI : -attackProgress * Math.PI;
                 }
-                context.rotate(dir === 1 ? armAngle : -armAngle);
+                context.rotate(angle);
                 context.fillRect(dir === 1 ? 0 : -armLength, -armWidth / 2, armLength, armWidth);
                 context.beginPath();
                 context.moveTo(dir === 1 ? 0 : -armLength, 0);
@@ -343,6 +351,10 @@ export default class Player {
         // character sprite. Keeping drawing logic here would result in two
         // health bars, so it has been removed.
         context.restore();
+        if (this.attackFlashTimer > 0 && this.attackArea) {
+            context.fillStyle = 'rgba(255,0,0,0.5)';
+            context.fillRect(this.attackArea.x, this.attackArea.y, this.attackArea.width, this.attackArea.height);
+        }
     }
 
     update(input, roomBoundaries) {
@@ -350,6 +362,7 @@ export default class Player {
             this.deathTime++;
             return;
         }
+        if (this.onGround) this.hasDoubleJumped = false;
         if (this.slashTimer > 0) {
             this.slashTimer--;
             this.vx = 0;
@@ -390,9 +403,14 @@ export default class Player {
         const jumpKeysArePressed = input.isActionPressed('jump');
         const jumpPower = this.getCurrentJumpPower();
 
-        if (jumpKeysArePressed && !this.wasJumpPressed && this.onGround && jumpPower !== 0) {
-            this.vy = jumpPower;
-            this.onGround = false;
+        if (jumpKeysArePressed && !this.wasJumpPressed && jumpPower !== 0) {
+            if (this.onGround) {
+                this.vy = jumpPower;
+                this.onGround = false;
+            } else if (this.equipped.wings && !this.hasDoubleJumped) {
+                this.vy = jumpPower;
+                this.hasDoubleJumped = true;
+            }
         }
         this.wasJumpPressed = jumpKeysArePressed;
 
@@ -401,6 +419,8 @@ export default class Player {
         this.onGround = false;
 
         if (this.attackCooldown > 0) this.attackCooldown--;
+        if (this.attackFlashTimer > 0) this.attackFlashTimer--;
+        else this.attackArea = null;
 
         const leftBoundary = 10;
         const rightBoundary = roomBoundaries.width - this.width - 10;
@@ -431,19 +451,20 @@ export default class Player {
 
     attack(enemies, respawnData, roomId) {
         if (!this.equipped.weapon || this.attackCooldown > 0) return false;
-        const range = this.isRunning ? 100 : 60;
         let removed = false;
         const weapon = this.equipped.weapon;
         let area;
+        const quarterW = this.width / 4;
+        const quarterH = this.height / 4;
         if (this.lookDirection === 'up') {
-            area = { x: this.x - range / 2, y: this.y - range, width: this.width + range, height: range };
+            area = { x: this.x, y: this.y - quarterH, width: this.width, height: quarterH };
         } else if (this.lookDirection === 'down') {
-            area = { x: this.x - range / 2, y: this.y + this.height, width: this.width + range, height: range };
+            area = { x: this.x, y: this.y + this.height, width: this.width, height: quarterH };
         } else {
             if (this.facingRight) {
-                area = { x: this.x + this.width, y: this.y + this.height * 0.6 - weapon.height / 2, width: range, height: weapon.height };
+                area = { x: this.x + this.width, y: this.y, width: quarterW, height: this.height };
             } else {
-                area = { x: this.x - range, y: this.y + this.height * 0.6 - weapon.height / 2, width: range, height: weapon.height };
+                area = { x: this.x - quarterW, y: this.y, width: quarterW, height: this.height };
             }
         }
         const intersects = (a, b) => {
@@ -479,6 +500,8 @@ export default class Player {
         this.attackCooldown = 30;
         this.slashDuration = this.isRunning ? 20 : 10;
         this.slashTimer = this.slashDuration;
+        this.attackArea = area;
+        this.attackFlashTimer = 5;
         this.vx = 0;
         this.stopRunning();
         return removed;
