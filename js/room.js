@@ -39,8 +39,31 @@ export default class Room {
         });
 
         this.powerups.forEach(powerup => {
-            context.fillStyle = powerup.color;
-            context.fillRect(powerup.x, powerup.y, powerup.width, powerup.height);
+            if (powerup.type === 'meat') {
+                const cx = powerup.x + powerup.width / 2;
+                const cy = powerup.y + powerup.height / 2;
+                const outer = powerup.width / 2;
+                const inner = outer * 0.6;
+                context.fillStyle = '#e07a7a';
+                context.beginPath();
+                context.arc(cx, cy, outer, 0, Math.PI * 2);
+                context.fill();
+                context.fillStyle = '#ffffff';
+                context.beginPath();
+                context.arc(cx, cy, inner, 0, Math.PI * 2);
+                context.fill();
+                context.strokeStyle = '#cccccc';
+                context.lineWidth = 2;
+                context.beginPath();
+                context.moveTo(cx - inner / 2, cy);
+                context.lineTo(cx + inner / 2, cy);
+                context.moveTo(cx, cy - inner / 2);
+                context.lineTo(cx, cy + inner / 2);
+                context.stroke();
+            } else {
+                context.fillStyle = powerup.color;
+                context.fillRect(powerup.x, powerup.y, powerup.width, powerup.height);
+            }
         });
 
         this.interactables.forEach(item => {
@@ -292,6 +315,8 @@ export default class Room {
             ) {
                 if (powerup.type === 'evolution_power') {
                     player.evolve();
+                } else if (powerup.type === 'meat') {
+                    if (player.collectMeat) player.collectMeat();
                 }
                 if (respawnData) {
                     if (powerup.respawnType === 'never') {

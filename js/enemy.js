@@ -83,6 +83,7 @@ export class LittleBrownSkink extends Enemy {
         this.mouth = { x: 0, y: 0, width: mouthWidth, height: mouthHeight };
         this.aggro = false;
         this.aggroPauseTimer = 0;
+        this.scanRange = 200;
 
         // Interaction / sleep state
         this.interacting = false;
@@ -134,6 +135,30 @@ export class LittleBrownSkink extends Enemy {
         this.afterHitState = 'retreat';
         this.afterHitTimer = 30;
         this.direction = player.x < this.x ? 1 : -1;
+    }
+
+    hasLineOfSight(player, room) {
+        const x1 = this.x + this.width / 2;
+        const y1 = this.y + this.height / 2;
+        const x2 = player.x + player.width / 2;
+        const y2 = player.y + player.height / 2;
+        const obstacles = [
+            ...room.platforms,
+            ...room.walls,
+            ...room.enemies.filter(e => e !== this)
+        ];
+        const steps = 20;
+        for (let i = 1; i <= steps; i++) {
+            const t = i / steps;
+            const x = x1 + (x2 - x1) * t;
+            const y = y1 + (y2 - y1) * t;
+            for (const o of obstacles) {
+                if (x >= o.x && x <= o.x + o.width && y >= o.y && y <= o.y + o.height) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     update(room, player) {
@@ -237,21 +262,18 @@ export class LittleBrownSkink extends Enemy {
             return;
         }
 
-        const bodyLength = this.width + this.headWidth;
         const playerCenterX = player.x + player.width / 2;
         const playerCenterY = player.y + player.height / 2;
         const headX = this.direction === 1 ? this.x + this.width : this.x - this.headWidth;
-        const headCenterX = headX + this.headWidth / 2;
-        const headCenterY = this.y + this.height * 0.1 + this.headHeight / 2;
-        const tailCenterX = this.direction === 1 ? this.x : this.x + this.width;
-        const tailCenterY = this.y + this.height / 2;
-        const distHead = Math.hypot(playerCenterX - headCenterX, playerCenterY - headCenterY);
-        const distTail = Math.hypot(playerCenterX - tailCenterX, playerCenterY - tailCenterY);
+        const skinkCenterX = this.x + this.width / 2;
+        const skinkCenterY = this.y + this.height / 2;
+        const dist = Math.hypot(playerCenterX - skinkCenterX, playerCenterY - skinkCenterY);
+        const canSee = dist < this.scanRange && this.hasLineOfSight(player, room);
 
-        if (!this.aggro && (distHead < bodyLength || distTail < bodyLength * 0.25)) {
+        if (!this.aggro && canSee) {
             this.aggro = true;
             this.aggroPauseTimer = 15;
-        } else if (this.aggro && distHead > bodyLength * 2 && distTail > bodyLength) {
+        } else if (this.aggro && !canSee) {
             this.aggro = false;
             this.speed = this.baseSpeed;
         }
@@ -329,6 +351,11 @@ export class LittleBrownSkink extends Enemy {
     }
 
     draw(ctx) {
+        ctx.fillStyle = 'rgba(255,255,0,0.1)';
+        ctx.beginPath();
+        ctx.arc(this.x + this.width / 2, this.y + this.height / 2, this.scanRange, 0, Math.PI * 2);
+        ctx.fill();
+
         if (this.sleeping) {
             ctx.fillStyle = this.color;
             ctx.fillRect(this.x, this.y + this.height / 2, this.width, this.height / 2);

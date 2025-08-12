@@ -388,7 +388,7 @@ window.addEventListener('keydown', (e) => {
         canvas.focus();
     }
     if (key.toLowerCase() === input.bindings.attack && gameState === 'PLAYING') {
-        const removed = player.attack(currentRoom.enemies, respawnData, currentRoom.id);
+        const removed = player.attack(currentRoom.enemies, respawnData, currentRoom);
         if (removed) saveGame();
     }
     if (key === input.bindings.ability && gameState === 'PLAYING') {
