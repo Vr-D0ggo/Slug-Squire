@@ -102,6 +102,11 @@ export class LittleBrownSkink extends Enemy {
         // Post-hit behavior
         this.afterHitState = null; // 'retreat' or 'charge'
         this.afterHitTimer = 0;
+
+        // Meat eating behaviour
+        this.targetMeat = null;
+        this.eating = false;
+        this.eatingTimer = 0;
     }
 
     stun(duration) {
@@ -162,6 +167,35 @@ export class LittleBrownSkink extends Enemy {
     }
 
     update(room, player) {
+        if (this.eating) {
+            this.vx = 0;
+            this.mouthOpen = false;
+            if (this.eatingTimer > 0) {
+                this.eatingTimer--;
+                if (this.eatingTimer === 0) {
+                    this.eating = false;
+                    this.health = Math.min(this.health + 5, 20);
+                }
+            }
+            super.update(room);
+            return;
+        }
+
+        if (this.targetMeat) {
+            const dx = this.targetMeat.x - this.x;
+            this.direction = dx > 0 ? 1 : -1;
+            this.vx = this.baseSpeed * this.direction;
+            if (Math.abs(dx) < 5) {
+                this.x = this.targetMeat.x;
+                this.targetMeat = null;
+                this.eating = true;
+                this.eatingTimer = 120;
+                this.vx = 0;
+            }
+            super.update(room);
+            return;
+        }
+
         if (this.sleepTimer > 0) {
             this.sleepTimer--;
             if (this.sleepTimer === 0) {
@@ -356,12 +390,16 @@ export class LittleBrownSkink extends Enemy {
         ctx.arc(this.x + this.width / 2, this.y + this.height / 2, this.scanRange, 0, Math.PI * 2);
         ctx.fill();
 
-        if (this.sleeping) {
+        if (this.sleeping || this.eating) {
             ctx.fillStyle = this.color;
             ctx.fillRect(this.x, this.y + this.height / 2, this.width, this.height / 2);
             const headX = this.direction === 1 ? this.x + this.width : this.x - this.headWidth;
             ctx.fillStyle = '#2ecc71';
             ctx.fillRect(headX, this.y + this.height / 2, this.headWidth, this.headHeight);
+            if (this.eating) {
+                ctx.fillStyle = '#ff9acb';
+                ctx.fillRect(headX + this.headWidth * 0.3, this.y + this.height / 2 + this.headHeight * 0.4, this.headWidth * 0.4, this.headHeight * 0.2);
+            }
             return;
         }
 
