@@ -24,7 +24,16 @@ export const items = {
         }
     },
     wings: {
-        // future wing items can go here
+        leafWings: {
+            id: 'leaf_wings',
+            name: 'Leaf Wings',
+            type: 'wings',
+            width: 30,
+            height: 20,
+            color: '#228B22',
+            stats: { Weight: 5 },
+            description: 'Lightweight wings that allow double jumping.'
+        }
     },
     abilities: {
         spittingSpiderAbdomen: {
