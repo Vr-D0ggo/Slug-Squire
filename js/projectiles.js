@@ -1,11 +1,11 @@
 export class WebProjectile {
-    constructor(x, y, dx, dy, groundY) {
+    constructor(x, y, dx, dy, groundY, parentVx = 0, parentVy = 0) {
         const speed = 5;
         this.x = x;
         this.y = y;
-        this.vx = dx * speed;
-        this.vy = dy * speed;
-        this.radius = 10;
+        this.vx = dx * speed + parentVx;
+        this.vy = dy * speed + parentVy;
+        this.radius = 2.5;
         this.groundY = groundY;
         this.hitGround = false;
     }
@@ -20,6 +20,7 @@ export class WebProjectile {
     }
 
     draw(ctx) {
+        if (this.hitGround) return;
         ctx.fillStyle = '#ffffff';
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);

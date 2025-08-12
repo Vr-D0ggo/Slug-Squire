@@ -109,7 +109,6 @@ export default class Room {
 
             if (enemy.interacting && enemy.interactTarget && enemy.interactTarget !== player) {
                 enemy.hasDealtDamage = false;
-                return;
             }
 
             if (enemy.sleeping) {
@@ -273,9 +272,11 @@ export default class Room {
                 } else if (player.vx > 0 && playerPrevRight <= platform.x) {
                     player.x = platform.x - player.width;
                     player.vx = 0;
+                    if (player.stopRunning) player.stopRunning();
                 } else if (player.vx < 0 && playerPrevLeft >= platform.x + platform.width) {
                     player.x = platform.x + platform.width;
                     player.vx = 0;
+                    if (player.stopRunning) player.stopRunning();
                 }
             }
         });

@@ -55,6 +55,7 @@ export default class Player {
         this.walkCycle = 0;
         this.walkTime = 0;
         this.hasDoubleJumped = false;
+        this.wingFlapTimer = 0;
 
         // --- Death state ---
         this.isDead = false;
@@ -230,15 +231,16 @@ export default class Player {
 
         if (this.equipped.wings) {
             context.fillStyle = this.equipped.wings.color || '#999';
+            const flap = this.wingFlapTimer > 0 ? Math.sin(this.wingFlapTimer * 0.5) * 10 : 0;
             context.beginPath();
             context.moveTo(drawX - 10, drawY + this.height / 2);
-            context.lineTo(drawX, drawY);
-            context.lineTo(drawX, drawY + this.height);
+            context.lineTo(drawX - flap, drawY);
+            context.lineTo(drawX - flap, drawY + this.height);
             context.fill();
             context.beginPath();
             context.moveTo(drawX + this.width + 10, drawY + this.height / 2);
-            context.lineTo(drawX + this.width, drawY);
-            context.lineTo(drawX + this.width, drawY + this.height);
+            context.lineTo(drawX + this.width + flap, drawY);
+            context.lineTo(drawX + this.width + flap, drawY + this.height);
             context.fill();
         }
 
@@ -397,6 +399,8 @@ export default class Player {
         if (this.vx > 0) this.facingRight = true;
         else if (this.vx < 0) this.facingRight = false;
 
+        if (this.wingFlapTimer > 0) this.wingFlapTimer--;
+
         if (input.isActionPressed('lookUp')) {
             this.lookDirection = 'up';
         } else if (input.isActionPressed('lookDown')) {
@@ -415,6 +419,7 @@ export default class Player {
             } else if (this.equipped.wings && !this.hasDoubleJumped) {
                 this.vy = jumpPower;
                 this.hasDoubleJumped = true;
+                this.wingFlapTimer = 10;
             }
         }
         this.wasJumpPressed = jumpKeysArePressed;
@@ -429,8 +434,16 @@ export default class Player {
 
         const leftBoundary = 10;
         const rightBoundary = roomBoundaries.width - this.width - 10;
-        if (this.x < leftBoundary) this.x = leftBoundary;
-        if (this.x > rightBoundary) this.x = rightBoundary;
+        if (this.x < leftBoundary) {
+            this.x = leftBoundary;
+            this.vx = 0;
+            this.stopRunning();
+        }
+        if (this.x > rightBoundary) {
+            this.x = rightBoundary;
+            this.vx = 0;
+            this.stopRunning();
+        }
 
         // Facing is determined by last horizontal movement
     }
@@ -480,8 +493,7 @@ export default class Player {
             };
         } else {
             const attackY = this.y - quarterH;
-            const floorY = this.gameHeight - 20;
-            const sideHeight = floorY - attackY;
+            const sideHeight = this.height + quarterH;
             if (this.facingRight) {
                 area = { x: this.x + this.width, y: attackY, width: sideWidth, height: sideHeight };
             } else {
@@ -537,7 +549,7 @@ export default class Player {
             if (this.lookDirection === 'up') dy = -1;
             else if (this.lookDirection === 'down') dy = 1;
             else dx = this.facingRight ? 1 : -1;
-            this.projectiles.push(new WebProjectile(rearX, rearY, dx, dy, this.gameHeight - 20));
+            this.projectiles.push(new WebProjectile(rearX, rearY, dx, dy, this.gameHeight - 20, this.vx, this.vy));
             this.abilityCooldown = 60;
         }
     }
