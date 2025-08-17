@@ -475,7 +475,6 @@ export class LittleBrownSkink extends Enemy {
         });
 
         // Head
-        const headX = this.headDirection === 1 ? this.x + this.width : this.x - this.headWidth;
         ctx.fillStyle = '#2ecc71';
         ctx.fillRect(headX, this.y + this.height * 0.1, this.headWidth, this.headHeight);
 
