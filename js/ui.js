@@ -8,7 +8,9 @@ export class InventoryUI {
         this.player = player;
         this.currentPage = 0;
         this.maxPages = 2; // Page 0: Bug Parts, Page 1: Coming Soon
-        this.popupItem = null; // When an item is clicked, it's stored here to draw the popup
+        // When an item is clicked, we show a small context menu near the cursor
+        // popupItem holds { item, x, y, mode: 'menu' | 'stats' }
+        this.popupItem = null;
 
         this.itemRects = [];
         this.slotRects = {};
@@ -28,9 +30,13 @@ export class InventoryUI {
         ctx.strokeStyle = '#aaa';
         ctx.strokeRect(10, 10, canvasWidth - 20, canvasHeight - 20);
 
-        // If a popup is active, draw it on top. Otherwise, draw the current inventory page.
+        // If a popup/menu is active, draw it on top. Otherwise, draw the current inventory page.
         if (this.popupItem) {
-            this.drawItemPopup(ctx, canvasWidth, canvasHeight);
+            if (this.popupItem.mode === 'stats') {
+                this.drawItemStatsPopup(ctx, canvasWidth, canvasHeight);
+            } else {
+                this.drawItemMenu(ctx);
+            }
         } else {
             switch(this.currentPage) {
                 case 0:
@@ -182,7 +188,7 @@ export class InventoryUI {
     /**
      * Draws the popup window for a selected item, centered on the screen.
      */
-    drawItemPopup(ctx, canvasWidth, canvasHeight) {
+    drawItemStatsPopup(ctx, canvasWidth, canvasHeight) {
         const popupWidth = 300, popupHeight = 300;
         const popupX = (canvasWidth - popupWidth) / 2;
         const popupY = (canvasHeight - popupHeight) / 2;
@@ -196,19 +202,21 @@ export class InventoryUI {
         ctx.fillStyle = 'white';
         ctx.font = '28px Georgia';
         ctx.textAlign = 'center';
-        ctx.fillText(this.popupItem.name, popupX + popupWidth / 2, popupY + 40);
+        ctx.fillText(this.popupItem.item.name, popupX + popupWidth / 2, popupY + 40);
 
+        // Close button
         const closePopupRect = { x: popupX + popupWidth - 25, y: popupY + 5, width: 20, height: 20 };
+        this.closePopupRect = closePopupRect;
         ctx.font = '20px Arial';
         ctx.fillText('X', closePopupRect.x + 10, closePopupRect.y + 15);
 
-        this.drawItemIcon(ctx, this.popupItem, popupX + popupWidth / 2, popupY + 90, 60);
+        this.drawItemIcon(ctx, this.popupItem.item, popupX + popupWidth / 2, popupY + 90, 60);
         ctx.font = '20px Georgia';
         ctx.textAlign = 'left';
         ctx.textBaseline = 'alphabetic';
         let yPos = popupY + 150;
         if (this.player.isEvolved) {
-            for (const [stat, value] of Object.entries(this.popupItem.stats)) {
+            for (const [stat, value] of Object.entries(this.popupItem.item.stats)) {
                 const displayValue = stat === 'Weight' ? `${value} mg` : value;
                 ctx.fillText(`${stat}: ${displayValue}`, popupX + 30, yPos);
                 yPos += 30;
@@ -223,30 +231,34 @@ export class InventoryUI {
             ctx.fillStyle = 'white';
         }
         ctx.font = '16px Georgia';
-        ctx.fillText(this.popupItem.description, popupX + 30, yPos);
-        if (this.player.isEvolved) {
-            const equipButtonRect = { x: popupX + 50, y: popupY + popupHeight - 70, width: 200, height: 40 };
-            let buttonText;
-            let buttonColor = '#3498db';
-            if (this.popupItem.type === 'weapon') {
-                const isEquipped = this.player.equipped.weapon === this.popupItem;
-                buttonText = isEquipped ? 'Unequip' : 'Equip';
-            } else {
-                const isStaged = this.player.stagedEquipment[this.popupItem.type] === this.popupItem;
-                buttonText = isStaged ? 'Unstage' : 'Stage for Shedding';
-                buttonColor = isStaged ? '#e67e22' : '#3498db';
-            }
-            ctx.fillStyle = buttonColor;
-            ctx.fillRect(equipButtonRect.x, equipButtonRect.y, equipButtonRect.width, equipButtonRect.height);
-
-            ctx.fillStyle = 'white';
-            ctx.font = '24px Georgia';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(buttonText, equipButtonRect.x + equipButtonRect.width / 2, equipButtonRect.y + 20);
-        }
-        
+        ctx.fillText(this.popupItem.item.description, popupX + 30, yPos);
         ctx.textBaseline = 'alphabetic'; // Reset baseline
+    }
+
+    drawItemMenu(ctx) {
+        const menuWidth = 100;
+        const buttonHeight = 30;
+        const x = this.popupItem.x;
+        const y = this.popupItem.y;
+
+        this.menuButtonRects = {
+            equip: { x, y, width: menuWidth, height: buttonHeight },
+            stats: { x, y: y + buttonHeight, width: menuWidth, height: buttonHeight }
+        };
+
+        ctx.fillStyle = '#2c3e50';
+        ctx.strokeStyle = '#95a5a6';
+        ctx.lineWidth = 2;
+        ctx.fillRect(x, y, menuWidth, buttonHeight * 2);
+        ctx.strokeRect(x, y, menuWidth, buttonHeight * 2);
+
+        ctx.fillStyle = 'white';
+        ctx.font = '16px Georgia';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('Equip', x + menuWidth / 2, y + buttonHeight / 2);
+        ctx.fillText('See Stats', x + menuWidth / 2, y + buttonHeight * 1.5);
+        ctx.textBaseline = 'alphabetic';
     }
 
     drawComingSoonPage(ctx, canvasWidth, canvasHeight) {
@@ -310,30 +322,34 @@ export class InventoryUI {
      */
     handleClick(x, y, canvasWidth, canvasHeight) {
         if (this.popupItem) {
-            const popupWidth = 300, popupHeight = 300;
-            const popupX = (canvasWidth - popupWidth) / 2;
-            const popupY = (canvasHeight - popupHeight) / 2;
-            const closePopupRect = { x: popupX + popupWidth - 25, y: popupY + 5, width: 20, height: 20 };
-            const equipButtonRect = { x: popupX + 50, y: popupY + popupHeight - 70, width: 200, height: 40 };
-
-            if (this.isClickInside(x, y, closePopupRect)) { this.popupItem = null; }
-            
-            if (this.player.isEvolved && this.isClickInside(x, y, equipButtonRect)) {
-                if (this.popupItem.type === 'weapon') {
-                    const isEquipped = this.player.equipped.weapon === this.popupItem;
-                    if (isEquipped) { this.player.unequipWeapon(); }
-                    else { this.player.equipWeapon(this.popupItem); }
+            if (this.popupItem.mode === 'menu') {
+                const { equip, stats } = this.menuButtonRects || {};
+                if (equip && this.isClickInside(x, y, equip)) {
+                    const item = this.popupItem.item;
+                    if (item.type === 'weapon') {
+                        const isEquipped = this.player.equipped.weapon === item;
+                        if (isEquipped) { this.player.unequipWeapon(); }
+                        else { this.player.equipWeapon(item); }
+                    } else {
+                        const isStaged = this.player.stagedEquipment[item.type] === item;
+                        if (isStaged) { this.player.unstageItem(item.type); }
+                        else { this.player.stageItem(item); }
+                    }
+                    this.popupItem = null;
+                } else if (stats && this.isClickInside(x, y, stats)) {
+                    this.popupItem.mode = 'stats';
                 } else {
-                    const isStaged = this.player.stagedEquipment[this.popupItem.type] === this.popupItem;
-                    if (isStaged) { this.player.unstageItem(this.popupItem.type); }
-                    else { this.player.stageItem(this.popupItem); }
+                    this.popupItem = null;
                 }
-                this.popupItem = null;
+            } else if (this.popupItem.mode === 'stats') {
+                if (this.closePopupRect && this.isClickInside(x, y, this.closePopupRect)) {
+                    this.popupItem = null;
+                }
             }
         } else {
             for (const itemRect of this.itemRects) {
                 if (this.isClickInside(x, y, itemRect.rect)) {
-                    this.popupItem = itemRect.item;
+                    this.popupItem = { item: itemRect.item, x, y, mode: 'menu' };
                     return false;
                 }
             }
@@ -354,7 +370,7 @@ export class InventoryUI {
                 this.player.shedExoskeleton();
                 return true;
             }
-            
+
             const rightArrowRect = { x: canvasWidth - 60, y: canvasHeight/2 - 15, width: 40, height: 30 };
             const leftArrowRect = { x: 20, y: canvasHeight/2 - 15, width: 40, height: 30 };
             if (this.currentPage < this.maxPages - 1 && this.isClickInside(x, y, rightArrowRect)) this.currentPage++;
