@@ -53,8 +53,8 @@ export const levelData = {
             }
         ],
         enemies: [
-            { id: 'skink_1', type: "little_brown_skink", x: 1300, y: 570, respawnType: 'room' },
-            { id: 'skink_2', type: "little_brown_skink", x: 1800, y: 570, respawnType: 'room' }
+            { id: 'skink_1', type: "little_brown_skink", x: 1300, y: 550, respawnType: 'room' },
+            { id: 'skink_2', type: "little_brown_skink", x: 1800, y: 550, respawnType: 'room' }
         ],
     },
 };

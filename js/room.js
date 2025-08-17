@@ -153,7 +153,7 @@ export default class Room {
                 player.x < enemy.head.x + enemy.head.width &&
                 player.x + player.width > enemy.head.x &&
                 player.y < enemy.head.y + enemy.head.height &&
-                player.y + player.height > enemy.head.y) {
+                player.y + player.height + player.getLegHeight() > enemy.head.y) {
                 isColliding = true;
                 // Position the skink so its head stays against the player
                 if (enemy.direction === 1) {
@@ -175,7 +175,7 @@ export default class Room {
                     player.x < m.x + m.width &&
                     player.x + player.width > m.x &&
                     player.y < m.y + m.height &&
-                    player.y + player.height > m.y
+                    player.y + player.height + player.getLegHeight() > m.y
                 ) {
                     isColliding = true;
                     player.applyDamage(enemy.damage, enemy.damageType);
