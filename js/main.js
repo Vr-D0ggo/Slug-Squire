@@ -156,7 +156,7 @@ function updateSlotButtons() {
         if (data) {
             const stats = data.stats || {};
             btn.textContent = 'Slot ' + (i + 1) + ' - Items: ' + (stats.items || 0) +
-                ' Bosses: ' + (stats.bosses || 0) + ' Money: ' + (stats.money || 0);
+                ' Bosses: ' + (stats.bosses || 0) + ' Meat: ' + (stats.money || 0);
         } else {
             btn.textContent = 'Slot ' + (i + 1) + ' - Empty';
         }
@@ -254,6 +254,32 @@ function gameLoop() {
         ctx.fillRect(20, 20, uiBarWidth * uiRatio, uiBarHeight);
         ctx.strokeStyle = '#000000';
         ctx.strokeRect(20, 20, uiBarWidth, uiBarHeight);
+        // Draw meat (money) below health bar
+        const meatSize = 16;
+        const meatX = 20;
+        const meatY = 20 + uiBarHeight + 10;
+        const cx = meatX + meatSize / 2;
+        const cy = meatY + meatSize / 2;
+        ctx.fillStyle = '#e07a7a';
+        ctx.beginPath();
+        ctx.arc(cx, cy, meatSize / 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(cx, cy, meatSize * 0.3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#cccccc';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(cx - meatSize * 0.15, cy);
+        ctx.lineTo(cx + meatSize * 0.15, cy);
+        ctx.moveTo(cx, cy - meatSize * 0.15);
+        ctx.lineTo(cx, cy + meatSize * 0.15);
+        ctx.stroke();
+        ctx.fillStyle = '#000';
+        ctx.font = '16px sans-serif';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(player.money, meatX + meatSize + 5, meatY + meatSize / 2);
     } else if (gameState === 'INVENTORY') {
         ui.draw(ctx, canvas.width, canvas.height);
     } else if (gameState === 'DYING') {
@@ -440,6 +466,7 @@ function startGame(slotIndex) {
     player.itemsCollected = data.stats.items || 0;
     player.bossesDefeated = data.stats.bosses || 0;
     player.money = data.stats.money || 0;
+    player.meat = player.money;
     player.inventory = (data.inventory || []).map(id => getItemById(id)).filter(Boolean);
     player.equipped = {
         arms: data.equipped.arms ? getItemById(data.equipped.arms) : null,

@@ -169,7 +169,8 @@ export default class Player {
     }
 
     collectMeat() {
-        this.meat++;
+        this.money++;
+        this.meat = this.money;
     }
 
     getAttackSpeed() {
@@ -263,6 +264,11 @@ export default class Player {
             context.fillRect(drawX, drawY, this.width, this.height);
             context.fillStyle = '#2ecc71';
             context.fillRect(drawX, drawY, this.width, 7);
+        }
+
+        if (this.equipped.armor) {
+            context.fillStyle = this.equipped.armor.color || '#888';
+            context.fillRect(drawX, drawY + this.height / 3, this.width, this.height / 3);
         }
 
         if (this.equipped.ability && this.equipped.ability.id === 'spitting_spider_abdomen') {

@@ -37,7 +37,7 @@ export const levelData = {
             { ...items.legs.brokenLegs, uid: 'broken_legs_1', respawnType: 'never', x: 850, y: 570 },
             { ...items.abilities.spittingSpiderAbdomen, uid: 'spider_sa_1', respawnType: 'never', x: 930, y: 560 },
             { ...items.wings.leafWings, uid: 'leaf_wings_1', respawnType: 'never', x: 970, y: 560 },
-            { ...items.armor.basicShell, uid: 'basic_shell_1', respawnType: 'never', x: 1010, y: 560 },
+            { ...items.armor.antExoskeleton, uid: 'ant_exoskeleton_1', respawnType: 'never', x: 1010, y: 560 },
             // Sword near the first skink spawn
             { ...items.swords.usedQtip, uid: 'qtip_sword_1', respawnType: 'never', x: 1300, y: 560 }
         ],
