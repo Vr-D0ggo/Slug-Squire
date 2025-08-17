@@ -322,8 +322,9 @@ export class LittleBrownSkink extends Enemy {
         } else if (this.aggro && !canSee) {
             this.aggro = false;
             this.speed = this.baseSpeed;
-            this.searchTimer = 60;
-            this.searchFlipTimer = 30;
+            // keep moving in the same direction without turning to search
+            this.searchTimer = 0;
+            this.searchFlipTimer = 0;
             this.headDirection = this.direction;
         }
 

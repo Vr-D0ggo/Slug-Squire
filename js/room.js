@@ -164,6 +164,8 @@ export default class Room {
                 enemy.vx = 0;
                 player.applyDamage(enemy.damage, enemy.damageType);
                 if (player.stopRunning) player.stopRunning();
+                enemy.hasDealtDamage = true;
+                if (enemy.onDealDamage) enemy.onDealDamage(player);
             }
 
             // Mouth collision when attacking
