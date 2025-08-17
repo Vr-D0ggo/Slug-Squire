@@ -314,7 +314,7 @@ export class LittleBrownSkink extends Enemy {
             const facingAngle = this.headDirection === 1 ? 0 : Math.PI;
             angleDiff = ((angleToPlayer - facingAngle + Math.PI) % (Math.PI * 2)) - Math.PI;
         }
-        const canSee = dist < this.scanRange && Math.abs(angleDiff) <= this.fov / 2 && this.hasLineOfSight(player, room);
+        const canSee = dist < this.scanRange && this.hasLineOfSight(player, room);
 
         if (!this.aggro && canSee) {
             this.aggro = true;
@@ -400,6 +400,7 @@ export class LittleBrownSkink extends Enemy {
             this.mouthTimer--;
             if (this.mouthTimer === 0) {
                 this.mouthOpen = false;
+                this.hasDealtDamage = false;
             }
         } else if (this.aggro && this.wakeDelay === 0 && this.postStunDelay === 0) {
             this.attack(player);

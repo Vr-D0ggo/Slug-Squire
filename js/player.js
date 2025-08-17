@@ -99,8 +99,8 @@ export default class Player {
      * Moves a selected item into the staging area, ready for shedding.
      */
     stageItem(item) {
-        if (item.type === 'weapon' && !(this.equipped.arms || this.stagedEquipment.arms)) {
-            console.log('Need arms to equip a weapon.');
+        if (item.type === 'weapon') {
+            this.equipWeapon(item);
             return;
         }
         if (item.type in this.stagedEquipment) {
@@ -117,6 +117,40 @@ export default class Player {
             this.stagedEquipment[itemType] = null;
             console.log(`Unstaged ${itemType}.`);
         }
+    }
+
+    equipWeapon(item) {
+        if (!(this.equipped.arms || this.stagedEquipment.arms)) {
+            console.log('Need arms to equip a weapon.');
+            return;
+        }
+        this.equipped.weapon = item;
+        this.stagedEquipment.weapon = null;
+        console.log(`Equipped ${item.name}`);
+    }
+
+    unequipWeapon() {
+        if (this.equipped.weapon) {
+            console.log(`Unequipped ${this.equipped.weapon.name}`);
+            this.equipped.weapon = null;
+        }
+    }
+
+    removeEquipment(type) {
+        if (!this.equipped[type]) return;
+        if (type === 'arms' && this.equipped.weapon) {
+            this.unequipWeapon();
+        }
+        if (type === 'legs') {
+            const oldHeight = this.getLegHeight();
+            this.equipped.legs = null;
+            const newHeight = this.getLegHeight();
+            this.y -= (newHeight - oldHeight);
+            this.vy = 0;
+        } else {
+            this.equipped[type] = null;
+        }
+        console.log(`Removed ${type}.`);
     }
 
     /**

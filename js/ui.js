@@ -226,9 +226,17 @@ export class InventoryUI {
         ctx.fillText(this.popupItem.description, popupX + 30, yPos);
         if (this.player.isEvolved) {
             const equipButtonRect = { x: popupX + 50, y: popupY + popupHeight - 70, width: 200, height: 40 };
-            const isStaged = this.player.stagedEquipment[this.popupItem.type] === this.popupItem;
-            const buttonText = isStaged ? 'Unstage' : 'Stage for Shedding';
-            ctx.fillStyle = isStaged ? '#e67e22' : '#3498db';
+            let buttonText;
+            let buttonColor = '#3498db';
+            if (this.popupItem.type === 'weapon') {
+                const isEquipped = this.player.equipped.weapon === this.popupItem;
+                buttonText = isEquipped ? 'Unequip' : 'Equip';
+            } else {
+                const isStaged = this.player.stagedEquipment[this.popupItem.type] === this.popupItem;
+                buttonText = isStaged ? 'Unstage' : 'Stage for Shedding';
+                buttonColor = isStaged ? '#e67e22' : '#3498db';
+            }
+            ctx.fillStyle = buttonColor;
             ctx.fillRect(equipButtonRect.x, equipButtonRect.y, equipButtonRect.width, equipButtonRect.height);
 
             ctx.fillStyle = 'white';
@@ -311,15 +319,33 @@ export class InventoryUI {
             if (this.isClickInside(x, y, closePopupRect)) { this.popupItem = null; }
             
             if (this.player.isEvolved && this.isClickInside(x, y, equipButtonRect)) {
-                const isStaged = this.player.stagedEquipment[this.popupItem.type] === this.popupItem;
-                if (isStaged) { this.player.unstageItem(this.popupItem.type); }
-                else { this.player.stageItem(this.popupItem); }
+                if (this.popupItem.type === 'weapon') {
+                    const isEquipped = this.player.equipped.weapon === this.popupItem;
+                    if (isEquipped) { this.player.unequipWeapon(); }
+                    else { this.player.equipWeapon(this.popupItem); }
+                } else {
+                    const isStaged = this.player.stagedEquipment[this.popupItem.type] === this.popupItem;
+                    if (isStaged) { this.player.unstageItem(this.popupItem.type); }
+                    else { this.player.stageItem(this.popupItem); }
+                }
                 this.popupItem = null;
             }
         } else {
             for (const itemRect of this.itemRects) {
                 if (this.isClickInside(x, y, itemRect.rect)) {
                     this.popupItem = itemRect.item;
+                    return false;
+                }
+            }
+
+            for (const slot of Object.values(this.slotRects)) {
+                if (this.isClickInside(x, y, slot)) {
+                    if (this.player.stagedEquipment[slot.type]) {
+                        this.player.unstageItem(slot.type);
+                    } else if (this.player.equipped[slot.type]) {
+                        if (slot.type === 'weapon') this.player.unequipWeapon();
+                        else this.player.removeEquipment(slot.type);
+                    }
                     return false;
                 }
             }
