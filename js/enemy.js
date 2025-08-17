@@ -84,6 +84,10 @@ export class LittleBrownSkink extends Enemy {
         this.aggro = false;
         this.aggroPauseTimer = 0;
         this.scanRange = 200;
+        this.fov = Math.PI / 3; // 60 degree field of view
+        this.headDirection = this.direction;
+        this.searchTimer = 0;
+        this.searchFlipTimer = 0;
 
         // Interaction / sleep state
         this.interacting = false;
@@ -288,9 +292,9 @@ export class LittleBrownSkink extends Enemy {
             }
             this.mouthOpen = false;
             super.update(room);
-            const headX = this.direction === 1 ? this.x + this.width : this.x - this.headWidth;
+            const headX = this.headDirection === 1 ? this.x + this.width : this.x - this.headWidth;
             this.head = { x: headX, y: this.y + this.height * 0.1, width: this.headWidth, height: this.headHeight };
-            const headFront = this.direction === 1 ? headX + this.headWidth : headX;
+            const headFront = this.headDirection === 1 ? headX + this.headWidth : headX;
             this.mouth.x = headFront - this.mouth.width / 2;
             this.mouth.y = this.y + this.height * 0.1 + this.headHeight / 2 - this.mouth.height / 2;
             return;
@@ -298,11 +302,19 @@ export class LittleBrownSkink extends Enemy {
 
         const playerCenterX = player.x + player.width / 2;
         const playerCenterY = player.y + player.height / 2;
-        const headX = this.direction === 1 ? this.x + this.width : this.x - this.headWidth;
-        const skinkCenterX = this.x + this.width / 2;
-        const skinkCenterY = this.y + this.height / 2;
-        const dist = Math.hypot(playerCenterX - skinkCenterX, playerCenterY - skinkCenterY);
-        const canSee = dist < this.scanRange && this.hasLineOfSight(player, room);
+        const headX = this.headDirection === 1 ? this.x + this.width : this.x - this.headWidth;
+        const headCenterX = headX + this.headWidth / 2;
+        const headCenterY = this.y + this.height * 0.1 + this.headHeight / 2;
+        const dx = playerCenterX - headCenterX;
+        const dy = playerCenterY - headCenterY;
+        const dist = Math.hypot(dx, dy);
+        let angleDiff = 0;
+        if (dist !== 0) {
+            const angleToPlayer = Math.atan2(dy, dx);
+            const facingAngle = this.headDirection === 1 ? 0 : Math.PI;
+            angleDiff = ((angleToPlayer - facingAngle + Math.PI) % (Math.PI * 2)) - Math.PI;
+        }
+        const canSee = dist < this.scanRange && Math.abs(angleDiff) <= this.fov / 2 && this.hasLineOfSight(player, room);
 
         if (!this.aggro && canSee) {
             this.aggro = true;
@@ -310,6 +322,21 @@ export class LittleBrownSkink extends Enemy {
         } else if (this.aggro && !canSee) {
             this.aggro = false;
             this.speed = this.baseSpeed;
+            this.searchTimer = 60;
+            this.searchFlipTimer = 30;
+            this.headDirection = this.direction;
+        }
+
+        if (this.searchTimer > 0) {
+            this.vx = 0;
+            this.searchTimer--;
+            this.searchFlipTimer--;
+            if (this.searchFlipTimer <= 0) {
+                this.headDirection *= -1;
+                this.searchFlipTimer = 30;
+            }
+        } else {
+            this.headDirection = this.direction;
         }
 
         if (this.stunTimer > 0) {
@@ -385,20 +412,27 @@ export class LittleBrownSkink extends Enemy {
     }
 
     draw(ctx) {
+        const headX = this.headDirection === 1 ? this.x + this.width : this.x - this.headWidth;
+        const headCenterX = headX + this.headWidth / 2;
+        const headCenterY = this.y + this.height * 0.1 + this.headHeight / 2;
         ctx.fillStyle = 'rgba(255,255,0,0.1)';
         ctx.beginPath();
-        ctx.arc(this.x + this.width / 2, this.y + this.height / 2, this.scanRange, 0, Math.PI * 2);
+        ctx.moveTo(headCenterX, headCenterY);
+        const startAngle = this.headDirection === 1 ? -this.fov / 2 : Math.PI - this.fov / 2;
+        const endAngle = this.headDirection === 1 ? this.fov / 2 : Math.PI + this.fov / 2;
+        ctx.arc(headCenterX, headCenterY, this.scanRange, startAngle, endAngle);
+        ctx.closePath();
         ctx.fill();
 
         if (this.sleeping || this.eating) {
             ctx.fillStyle = this.color;
             ctx.fillRect(this.x, this.y + this.height / 2, this.width, this.height / 2);
-            const headX = this.direction === 1 ? this.x + this.width : this.x - this.headWidth;
+            const headXSleep = this.headDirection === 1 ? this.x + this.width : this.x - this.headWidth;
             ctx.fillStyle = '#2ecc71';
-            ctx.fillRect(headX, this.y + this.height / 2, this.headWidth, this.headHeight);
+            ctx.fillRect(headXSleep, this.y + this.height / 2, this.headWidth, this.headHeight);
             if (this.eating) {
                 ctx.fillStyle = '#ff9acb';
-                ctx.fillRect(headX + this.headWidth * 0.3, this.y + this.height / 2 + this.headHeight * 0.4, this.headWidth * 0.4, this.headHeight * 0.2);
+                ctx.fillRect(headXSleep + this.headWidth * 0.3, this.y + this.height / 2 + this.headHeight * 0.4, this.headWidth * 0.4, this.headHeight * 0.2);
             }
             return;
         }
@@ -441,7 +475,7 @@ export class LittleBrownSkink extends Enemy {
         });
 
         // Head
-        const headX = this.direction === 1 ? this.x + this.width : this.x - this.headWidth;
+        const headX = this.headDirection === 1 ? this.x + this.width : this.x - this.headWidth;
         ctx.fillStyle = '#2ecc71';
         ctx.fillRect(headX, this.y + this.height * 0.1, this.headWidth, this.headHeight);
 

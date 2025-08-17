@@ -63,21 +63,21 @@ export const items = {
             description: 'You probably should not touch the yellow end.'
         }
     },
-    armor: {
-        basicShell: {
-            id: 'basic_shell',
-            name: 'Basic Shell',
-            type: 'armor',
-            width: 30,
-            height: 20,
-            color: '#888888',
-            stats: { Weight: 20 },
-            strengths: { bludgeoning: 0.2 },
-            weaknesses: { slashing: 0.1 },
-            description: 'Offers modest protection.'
-        }
-    }
-};
+      armor: {
+          antExoskeleton: {
+              id: 'ant_exoskeleton',
+              name: 'Ant Exoskeleton',
+              type: 'armor',
+              width: 30,
+              height: 20,
+              color: '#888888',
+              stats: { Weight: 20 },
+              strengths: { bludgeoning: 0.2 },
+              weaknesses: { slashing: 0.1 },
+              description: 'Offers modest protection.'
+          }
+      }
+  };
 
 export function getItemById(id) {
     for (const group of Object.values(items)) {
