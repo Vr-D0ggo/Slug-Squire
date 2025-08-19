@@ -57,7 +57,7 @@ export class LittleBrownSkink extends Enemy {
     constructor(x, y, id, respawnType = 'room') {
         // Enemy size relative to the unevolved player
         const width = 40 * 2.5;      // Slightly shorter than before
-        const height = 20 * 1.5;     // Taller with extended legs
+        const height = 20 * 1.0;     // Taller with extended legs
 
         super(x, y, width, height, '#ff69b4', id, respawnType);
         this.health = 20;
