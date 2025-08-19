@@ -17,6 +17,8 @@ export const levelData = {
         playerStart: { x: 30, y: 540 },
         platforms: [
             { x: 0, y: 580, width: 1200, height: 20, color: '#7f8c8d' },
+            // Fill the gap after the initial rock steps
+            { x: 1200, y: 580, width: 100, height: 20, color: '#7f8c8d' },
             { x: 1300, y: 580, width: ROOM1_WIDTH - 1300, height: 20, color: '#7f8c8d' },
             { x: 0, y: 0, width: ROOM1_WIDTH, height: 20, color: '#7f8c8d' },
             // Small stone to test jumping (scaled to 60% height)
