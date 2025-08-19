@@ -75,8 +75,9 @@ const camera = {
     update: function(player, room) {
         this.x = player.x + player.width / 2 - this.width / 2;
         this.x = Math.max(0, Math.min(this.x, room.width - this.width));
-        // Keep the camera vertically fixed to avoid showing space above the level
-        this.y = 0;
+        // Follow the player's vertical position within the room bounds
+        this.y = player.y + player.height / 2 - this.height / 2;
+        this.y = Math.max(0, Math.min(this.y, room.height - this.height));
     }
 };
 
