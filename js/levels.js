@@ -30,7 +30,7 @@ export const levelData = {
         walls: [
             { x: ROOM1_WIDTH - 10, y: 0, width: 10, height: CANVAS_HEIGHT, color: '#27ae60', targetRoom: 1 },
             { x: 0, y: 0, width: 10, height: CANVAS_HEIGHT, color: '#7f8c8d', targetRoom: null },
-            { x: 1200, y: 580, width: 100, height: 20, color: '#000000', targetRoom: 2 },
+            { x: 2100, y: 580, width: 100, height: 20, color: '#000000', targetRoom: 2 },
         ],
         powerups: [
             { id: 'power_goop_1', x: 1000, y: 570, width: 50, height: 10, color: '#2ecc71', type: 'evolution_power', respawnType: 'never' }
@@ -66,13 +66,13 @@ export const levelData = {
         width: CANVAS_WIDTH,
         height: ROOM2_HEIGHT,
         backgroundColor: '#1a1a1a',
-        playerStart: { x: 50, y: 0 },
+        playerStart: { x: CANVAS_WIDTH / 2, y: 0 },
         platforms: [
-            { x: 0, y: 100, width: 150, height: 20, color: '#7f8c8d' },
-            { x: 50, y: 200, width: 150, height: 20, color: '#7f8c8d' },
-            { x: 100, y: 300, width: 150, height: 20, color: '#7f8c8d' },
-            { x: 150, y: 400, width: 150, height: 20, color: '#7f8c8d' },
-            { x: 200, y: 500, width: 150, height: 20, color: '#7f8c8d' },
+            { x: 300, y: 100, width: 40, height: 15, color: '#95a5a6' },
+            { x: 340, y: 200, width: 40, height: 30, color: '#95a5a6' },
+            { x: 380, y: 300, width: 40, height: 15, color: '#95a5a6' },
+            { x: 420, y: 400, width: 40, height: 30, color: '#95a5a6' },
+            { x: 460, y: 500, width: 40, height: 15, color: '#95a5a6' },
             { x: 0, y: ROOM2_HEIGHT - 20, width: CANVAS_WIDTH, height: 20, color: '#7f8c8d' },
         ],
         walls: [
