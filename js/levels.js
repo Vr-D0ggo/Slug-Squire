@@ -73,11 +73,13 @@ export const levelData = {
         backgroundColor: '#1a1a1a',
         playerStart: { x: CANVAS_WIDTH / 2, y: 0 },
         platforms: [
+            // Narrow vertical spacing between platforms to match Room 1's jumps
             { x: 300, y: 100, width: 40, height: 15, color: '#95a5a6' },
-            { x: 340, y: 200, width: 40, height: 30, color: '#95a5a6' },
-            { x: 380, y: 300, width: 40, height: 15, color: '#95a5a6' },
-            { x: 420, y: 400, width: 40, height: 30, color: '#95a5a6' },
-            { x: 460, y: 500, width: 40, height: 15, color: '#95a5a6' },
+            { x: 340, y: 115, width: 40, height: 30, color: '#95a5a6' },
+            { x: 380, y: 130, width: 40, height: 15, color: '#95a5a6' },
+            { x: 420, y: 145, width: 40, height: 30, color: '#95a5a6' },
+            { x: 460, y: 160, width: 40, height: 15, color: '#95a5a6' },
+            // Floor across the bottom of the room
             { x: 0, y: ROOM2_HEIGHT - 20, width: CANVAS_WIDTH, height: 20, color: '#7f8c8d' },
         ],
         walls: [
