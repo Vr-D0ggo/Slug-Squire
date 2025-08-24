@@ -5,7 +5,8 @@ import { items } from './items.js';
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 600;
 const ROOM1_WIDTH = 2600;
-const ROOM2_HEIGHT = 1800;
+const ROOM2_WIDTH = 1600; // Room is now twice as wide
+const ROOM2_HEIGHT = 2400; // Room is now deeper
 
 export const levelData = {
     1: {
@@ -49,16 +50,8 @@ export const levelData = {
             // Sword near the first skink spawn
             { ...items.swords.usedQtip, uid: 'qtip_sword_1', respawnType: 'never', x: 1300, y: 560 }
         ],
-        // NEW: Array for nests
         nests: [
-            {
-                id: 'nest_1',
-                x: 900, y: 550, // Before the rocks
-                width: 120,
-                height: 30,
-                hasEggs: false,
-                color: '#8d6e63'
-            }
+            { id: 'nest_1', x: 900, y: 550, width: 120, height: 30, hasEggs: false, color: '#8d6e63' }
         ],
         enemies: [
             { id: 'skink_1', type: "little_brown_skink", x: 1300, y: 550, respawnType: 'room' },
@@ -67,24 +60,85 @@ export const levelData = {
     },
     2: {
         id: 2,
-        name: "Deep Drop",
-        width: CANVAS_WIDTH,
+        name: "The Great Shaft",
+        width: ROOM2_WIDTH,
         height: ROOM2_HEIGHT,
-        backgroundColor: '#1a1a1a',
-        playerStart: { x: CANVAS_WIDTH / 2, y: 0 },
+        backgroundColor: '#3e2723', // Dark, earthy cave background
+        playerStart: { x: ROOM2_WIDTH / 2, y: 100 }, // Start near the top center
         platforms: [
-            // Narrow vertical spacing between platforms to match Room 1's jumps
-            { x: 300, y: 100, width: 40, height: 15, color: '#95a5a6' },
-            { x: 340, y: 115, width: 40, height: 30, color: '#95a5a6' },
-            { x: 380, y: 130, width: 40, height: 15, color: '#95a5a6' },
-            { x: 420, y: 145, width: 40, height: 30, color: '#95a5a6' },
-            { x: 460, y: 160, width: 40, height: 15, color: '#95a5a6' },
-            // Floor across the bottom of the room
-            { x: 0, y: ROOM2_HEIGHT - 20, width: CANVAS_WIDTH, height: 20, color: '#7f8c8d' },
+            // --- Irregular Wall Construction (using platforms for collision) ---
+            // Main Wall Color: '#6d4c41'
+            // Left Wall (Top to Bottom)
+            { x: 200, y: 0, width: 250, height: 200, color: '#6d4c41' },
+            { x: 0, y: 250, width: 200, height: 300, color: '#6d4c41' },
+            { x: 200, y: 200, width: 100, height: 400, color: '#6d4c41' },
+            { x: 250, y: 600, width: 80, height: 500, color: '#6d4c41' },
+            { x: 280, y: 1100, width: 100, height: 600, color: '#6d4c41' },
+            { x: 200, y: 1700, width: 150, height: 400, color: '#6d4c41' }, // Bulge from drawing
+            { x: 150, y: 2100, width: 100, height: 300, color: '#6d4c41' }, // Made bottom wall thinner for wider space
+
+            // Right Wall (Top to Bottom)
+            { x: ROOM2_WIDTH - 450, y: 0, width: 250, height: 250, color: '#6d4c41' },
+            { x: ROOM2_WIDTH - 200, y: 250, width: 200, height: 400, color: '#6d4c41' },
+            { x: ROOM2_WIDTH - 250, y: 650, width: 80, height: 450, color: '#6d4c41' },
+            { x: ROOM2_WIDTH - 350, y: 1100, width: 100, height: 300, color: '#6d4c41' },
+            { x: ROOM2_WIDTH - 350, y: 1450, width: 100, height: 550, color: '#6d4c41' },
+            { x: ROOM2_WIDTH - 250, y: 2000, width: 70, height: 400, color: '#6d4c41' }, // Made bottom wall thinner for wider space
+
+            // --- Ledges down the shaft ---
+            // Ledge Color: '#a1887f'
+            // Left Side Ledges
+            { x: 300, y: 300, width: 120, height: 25, color: '#a1887f' },
+            { x: 330, y: 550, width: 150, height: 25, color: '#a1887f' },
+            { x: 330, y: 800, width: 100, height: 25, color: '#a1887f' },
+            { x: 340, y: 850, width: 130, height: 25, color: '#a1887f' },
+            { x: 380, y: 1200, width: 110, height: 25, color: '#a1887f' },
+            { x: 390, y: 1260, width: 140, height: 25, color: '#a1887f' },
+            { x: 350, y: 1750, width: 120, height: 25, color: '#a1887f' },
+            { x: 350, y: 1850, width: 150, height: 25, color: '#a1887f' },
+            { x: 360, y: 1950, width: 100, height: 25, color: '#a1887f' },
+
+            // Right Side Ledges
+            { x: ROOM2_WIDTH - 420, y: 450, width: 100, height: 20, color: '#a1887f' },
+            { x: ROOM2_WIDTH - 400, y: 700, width: 120, height: 20, color: '#a1887f' },
+            { x: ROOM2_WIDTH - 450, y: 1000, width: 150, height: 20, color: '#a1887f' },
+            { x: ROOM2_WIDTH - 480, y: 1400, width: 130, height: 20, color: '#a1887f' },
+            { x: ROOM2_WIDTH - 460, y: 1460, width: 110, height: 20, color: '#a1887f' },
+            { x: ROOM2_WIDTH - 430, y: 1800, width: 100, height: 20, color: '#a1887f' },
+            { x: ROOM2_WIDTH - 450, y: 1860, width: 120, height: 20, color: '#a1887f' },
+            { x: ROOM2_WIDTH - 400, y: 2100, width: 100, height: 20, color: '#a1887f' },
+            { x: ROOM2_WIDTH - 420, y: 2160, width: 120, height: 20, color: '#a1887f' },
+            
+            // --- NEW BOTTOM STRUCTURE ---
+            // New, taller central "pipe" structure
+            { x: 700, y: 1900, width: 50, height: 500, color: '#6d4c41' },
+            { x: 850, y: 1900, width: 50, height: 500, color: '#6d4c41' },
+
+            // New floating platforms at the bottom, matching the drawing
+            { x: 400, y: 2250, width: 150, height: 20, color: '#a1887f' },
+            { x: 450, y: 2320, width: 120, height: 20, color: '#a1887f' },
+            { x: ROOM2_WIDTH - 550, y: 2250, width: 150, height: 20, color: '#a1887f' },
+            { x: ROOM2_WIDTH - 570, y: 2320, width: 120, height: 20, color: '#a1887f' },
+
+            // Absolute bottom floor
+            { x: 0, y: ROOM2_HEIGHT - 10, width: ROOM2_WIDTH, height: 10, color: '#5d4037' },
         ],
         walls: [
-            { x: 0, y: 0, width: 10, height: ROOM2_HEIGHT, color: '#7f8c8d', targetRoom: null },
-            { x: CANVAS_WIDTH - 10, y: 0, width: 10, height: ROOM2_HEIGHT, color: '#7f8c8d', targetRoom: null },
+            // Top and Side Exits
+            { x: 450, y: 0, width: ROOM2_WIDTH - 900, height: 20, color: 'rgba(0,0,0,0)', targetRoom: 1 },
+            { x: 0, y: 200, width: 20, height: 50, color: 'rgba(0,0,0,0)', targetRoom: null }, // Was 5
+            { x: ROOM2_WIDTH - 20, y: 1250, width: 20, height: 200, color: 'rgba(0,0,0,0)', targetRoom: null }, // Was 6
+
+            // --- NEW/MODIFIED BOTTOM EXITS ---
+            // Bottom Far Left Exit (goes nowhere for now)
+            { x: 0, y: ROOM2_HEIGHT - 100, width: 20, height: 80, color: 'rgba(0,0,0,0)', targetRoom: null }, // Was 7
+            
+            // Bottom Path Exits (large triggers on the floor, go nowhere for now)
+            { x: 20, y: ROOM2_HEIGHT - 40, width: 680, height: 30, color: 'rgba(0,0,0,0)', targetRoom: null }, // Was 3
+            { x: 900, y: ROOM2_HEIGHT - 40, width: 680, height: 30, color: 'rgba(0,0,0,0)', targetRoom: null }, // Was 4
+
+            // NEW: Central Pipe Exit
+            { x: 750, y: 1900, width: 100, height: 20, color: 'rgba(0,0,0,0)', targetRoom: 8 },
         ],
         powerups: [],
         interactables: [],
