@@ -42,7 +42,8 @@ export default class Player {
         this.evolvedWidth = 25; this.evolvedHeight = 50;
         this.baseSpeed = 1.5;
         this.baseJumpPower = 0;
-        this.baseWeight = 0.8; // Gravity constant
+        // No gravity in the drainage pipe
+        this.baseWeight = 0;
         this.bodyWeightMg = 500; // Weight of the slug in mg
         const jumpHeight = this.evolvedHeight / 2;
         this.jumpVelocityUnit = -Math.sqrt(2 * this.baseWeight * jumpHeight);
@@ -469,7 +470,7 @@ export default class Player {
         }
         this.wasJumpPressed = jumpKeysArePressed;
 
-        this.vy += this.baseWeight;
+        // Without gravity, vertical velocity persists until stopped by collisions
         this.y += this.vy;
         this.onGround = false;
 

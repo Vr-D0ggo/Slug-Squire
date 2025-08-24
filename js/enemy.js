@@ -25,19 +25,33 @@ export class Enemy {
     update(room) {
         if (this.slowTimer > 0) this.slowTimer--;
         else this.slowFactor = 1;
-        this.vy += 0.8;
-        this.x += this.vx * this.slowFactor;
-        this.y += this.vy * this.slowFactor;
+
+        const moveX = this.vx * this.slowFactor;
+        const moveY = this.vy * this.slowFactor;
+
+        this.x += moveX;
+        this.y += moveY;
         this.onGround = false;
-        room.platforms.forEach(p => {
+
+        const obstacles = [...room.platforms, ...room.walls];
+        obstacles.forEach(p => {
             if (this.x < p.x + p.width &&
                 this.x + this.width > p.x &&
                 this.y < p.y + p.height &&
                 this.y + this.height > p.y) {
-                if (this.vy >= 0 && this.y + this.height - this.vy <= p.y) {
+                if (moveY >= 0 && this.y + this.height - moveY <= p.y) {
                     this.y = p.y - this.height;
                     this.vy = 0;
                     this.onGround = true;
+                } else if (moveY < 0 && this.y - moveY >= p.y + p.height) {
+                    this.y = p.y + p.height;
+                    this.vy = 0;
+                } else if (moveX > 0 && this.x + this.width - moveX <= p.x) {
+                    this.x = p.x - this.width;
+                    this.vx = 0;
+                } else if (moveX < 0 && this.x - moveX >= p.x + p.width) {
+                    this.x = p.x + p.width;
+                    this.vx = 0;
                 }
             }
         });
@@ -59,7 +73,8 @@ export class LittleBrownSkink extends Enemy {
         const width = 40 * 2.5;      // Slightly shorter than before
         const height = 20 * 1.0;     // Taller with extended legs
 
-        super(x, y, width, height, '#ff69b4', id, respawnType);
+        super(x, y, width, height, '#8B4513', id, respawnType);
+        this.headColor = '#9acd32';
         this.health = 20;
         this.damage = 40;
         this.damageType = 'biting';
@@ -248,24 +263,26 @@ export class LittleBrownSkink extends Enemy {
                     }
                 }
             }
+            const prevVX = this.vx;
             super.update(room);
             // Bounce off room edges
             if (this.x <= 0 || this.x + this.width >= room.width) {
                 this.direction *= -1;
                 this.x = Math.max(0, Math.min(this.x, room.width - this.width));
             }
-            // Bounce off platforms from the sides
-            room.platforms.forEach(p => {
+            // Bounce off obstacles from the sides
+            const obstacles = [...room.platforms, ...room.walls];
+            obstacles.forEach(p => {
                 if (
                     this.x < p.x + p.width &&
                     this.x + this.width > p.x &&
                     this.y < p.y + p.height &&
                     this.y + this.height > p.y
                 ) {
-                    if (this.vx > 0 && this.x + this.width - this.vx <= p.x) {
+                    if (prevVX > 0) {
                         this.x = p.x - this.width;
                         this.direction = -1;
-                    } else if (this.vx < 0 && this.x - this.vx >= p.x + p.width) {
+                    } else if (prevVX < 0) {
                         this.x = p.x + p.width;
                         this.direction = 1;
                     }
@@ -367,6 +384,7 @@ export class LittleBrownSkink extends Enemy {
             }
         }
 
+        const prevVX = this.vx;
         super.update(room);
 
         if (this.onGround && Math.abs(this.vx) > 0.1) {
@@ -379,18 +397,19 @@ export class LittleBrownSkink extends Enemy {
             this.x = Math.max(0, Math.min(this.x, room.width - this.width));
         }
 
-        // Bounce off platforms from the sides
-        room.platforms.forEach(p => {
+        // Bounce off obstacles from the sides
+        const obstacles = [...room.platforms, ...room.walls];
+        obstacles.forEach(p => {
             if (
                 this.x < p.x + p.width &&
                 this.x + this.width > p.x &&
                 this.y < p.y + p.height &&
                 this.y + this.height > p.y
             ) {
-                if (this.vx > 0 && this.x + this.width - this.vx <= p.x) {
+                if (prevVX > 0) {
                     this.x = p.x - this.width;
                     this.direction = -1;
-                } else if (this.vx < 0 && this.x - this.vx >= p.x + p.width) {
+                } else if (prevVX < 0) {
                     this.x = p.x + p.width;
                     this.direction = 1;
                 }
@@ -430,7 +449,7 @@ export class LittleBrownSkink extends Enemy {
             ctx.fillStyle = this.color;
             ctx.fillRect(this.x, this.y + this.height / 2, this.width, this.height / 2);
             const headXSleep = this.headDirection === 1 ? this.x + this.width : this.x - this.headWidth;
-            ctx.fillStyle = '#2ecc71';
+            ctx.fillStyle = this.headColor;
             ctx.fillRect(headXSleep, this.y + this.height / 2, this.headWidth, this.headHeight);
             if (this.eating) {
                 ctx.fillStyle = '#ff9acb';
@@ -439,8 +458,24 @@ export class LittleBrownSkink extends Enemy {
             return;
         }
 
-        // Body
+        // Tail
+        const tailLen = this.width * 0.5;
+        const tailHeight = this.height * 0.3;
         ctx.fillStyle = this.color;
+        ctx.beginPath();
+        if (this.direction === 1) {
+            ctx.moveTo(this.x, this.y + this.height * 0.5);
+            ctx.lineTo(this.x - tailLen, this.y + this.height * 0.5 - tailHeight / 2);
+            ctx.lineTo(this.x - tailLen, this.y + this.height * 0.5 + tailHeight / 2);
+        } else {
+            ctx.moveTo(this.x + this.width, this.y + this.height * 0.5);
+            ctx.lineTo(this.x + this.width + tailLen, this.y + this.height * 0.5 - tailHeight / 2);
+            ctx.lineTo(this.x + this.width + tailLen, this.y + this.height * 0.5 + tailHeight / 2);
+        }
+        ctx.closePath();
+        ctx.fill();
+
+        // Body
         ctx.fillRect(this.x, this.y, this.width, this.height);
 
         const legLen = this.height * 0.8;
@@ -477,7 +512,7 @@ export class LittleBrownSkink extends Enemy {
         });
 
         // Head
-        ctx.fillStyle = '#2ecc71';
+        ctx.fillStyle = this.headColor;
         ctx.fillRect(headX, this.y + this.height * 0.1, this.headWidth, this.headHeight);
 
         if (this.mouthOpen) {
