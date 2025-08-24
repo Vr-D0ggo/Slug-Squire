@@ -26,6 +26,7 @@ export class Enemy {
         if (this.slowTimer > 0) this.slowTimer--;
         else this.slowFactor = 1;
 
+        this.vy += 0.8;
         const moveX = this.vx * this.slowFactor;
         const moveY = this.vy * this.slowFactor;
 
